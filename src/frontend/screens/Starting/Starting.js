@@ -61,7 +61,7 @@ const Starting = ({ navigation }) => {
       </View>
 
       {/* Lien de connexion */}
-      <Pressable onPress={() => navigation.navigate('log in')}>
+      <Pressable onPress={() => navigation.navigate('WelcomeScreen')}>
         <Text style={styles.loginText}>Already have an account? Log in</Text>
       </Pressable>
     </View>

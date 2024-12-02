@@ -46,7 +46,7 @@ const TransparencyScreen = ({ navigation }) => {
           Already have an account?{' '}
           <Text
             style={styles.logInLink}
-            onPress={() => navigation.navigate('Login')}>
+            onPress={() => navigation.navigate('WelcomeScreen')}>
             Log in
           </Text>
         </Text>

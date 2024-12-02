@@ -32,9 +32,6 @@ const OurPhilosophy = ({ navigation }) => {
       <Text style={styles.content}>
         Duolib is free, available to everyone with no ads and pharmaceutical partnership. Please help us to maintain our websites free.
       </Text>
-      <Text style={styles.accountText}>
-        Already have an account? <Text style={styles.logIn}>Log in</Text>
-      </Text>
 
       {/* Boutons */}
       <View style={styles.buttonContainer}>
@@ -47,6 +44,16 @@ const OurPhilosophy = ({ navigation }) => {
         >
           <Text style={styles.buttonText}>Donate</Text>
         </Pressable>
+      </View>
+
+      {/* Lien pour "Already have an account?" et "Log in" */}
+      <View style={styles.accountContainer}>
+        <Text style={styles.accountText}>
+          <Text style={styles.boldText}>Already have an account?</Text>{' '}
+          <Pressable onPress={() => navigation.navigate('WelcomeScreen')}>
+            <Text style={styles.logIn}>Log in</Text>
+          </Pressable>
+        </Text>
       </View>
     </View>
   );
@@ -109,21 +116,11 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     color: '#444444',
   },
-  accountText: {
-    fontSize: 16,
-    color: '#444444',
-    marginTop: 20,
-    textAlign: 'center',
-  },
-  logIn: {
-    color: '#FF8800',
-    fontWeight: '600',
-  },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '90%',
-    marginTop: 20,
+    marginTop: 10,  // Réduction de la marge pour remonter les boutons
   },
   goButton: {
     backgroundColor: '#2196F3',
@@ -143,6 +140,22 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  accountContainer: {
+    marginTop: 20,  // Réduction de l'espacement sous les boutons
+    alignItems: 'center',
+  },
+  accountText: {
+    fontSize: 16,
+    color: '#444444',
+    textAlign: 'center',
+  },
+  logIn: {
+    color: '#FF8800',
+    fontWeight: '600',
+  },
+  boldText: {
+    fontWeight: 'bold',
   },
 });
 

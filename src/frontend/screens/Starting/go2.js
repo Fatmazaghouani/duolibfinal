@@ -58,7 +58,7 @@ const Go2Screen = ({ navigation }) => {
       </Pressable>
 
       {/* Phrase "Already have an account? Login" */}
-      <Pressable onPress={() => navigation.navigate('log in')}>
+      <Pressable onPress={() => navigation.navigate('WelcomeScreen')}>
         <Text style={styles.loginText}>
           Already have an account? <Text style={styles.loginLink}>Login</Text>
         </Text>

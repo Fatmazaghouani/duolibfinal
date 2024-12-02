@@ -16,6 +16,7 @@ const ContactUsScreen = ({ navigation }) => {
     name: '',
     surname: '',
     message: '',
+    privacyPolicy: ''
   });
 
   // Fonction pour basculer l'état de la checkbox
@@ -25,12 +26,12 @@ const ContactUsScreen = ({ navigation }) => {
 
   const validateForm = () => {
     let valid = true;
-    let errorMessages = { email: '', name: '', surname: '', message: '' };
+    let errorMessages = { email: '', name: '', surname: '', message: '', privacyPolicy: '' };
 
     // Validation de l'email
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!email) {
-      errorMessages.email = 'Email is required';
+      errorMessages.email = 'Please complete your email';
       valid = false;
     } else if (!emailRegex.test(email)) {
       errorMessages.email = 'Please enter a valid email';
@@ -39,22 +40,28 @@ const ContactUsScreen = ({ navigation }) => {
 
     // Validation du nom
     if (!name) {
-      errorMessages.name = 'Name is required';
+      errorMessages.name = 'Please complete your name';
       valid = false;
     }
 
     // Validation du prénom
     if (!surname) {
-      errorMessages.surname = 'Surname is required';
+      errorMessages.surname = 'Please complete your surname';
       valid = false;
     }
 
     // Validation du message
     if (!message) {
-      errorMessages.message = 'Message is required';
+      errorMessages.message = 'Please enter a message';
       valid = false;
     } else if (message.length > 1000) {
-      errorMessages.message = 'Message cannot exceed 1000 characters';
+      errorMessages.message = 'Your message is too long: maximum 1.000 characters';
+      valid = false;
+    }
+
+    // Validation de la politique de confidentialité
+    if (!isChecked) {
+      errorMessages.privacyPolicy = 'Please agree to our friendly privacy policy';
       valid = false;
     }
 
@@ -64,12 +71,16 @@ const ContactUsScreen = ({ navigation }) => {
 
   const handleSubmit = () => {
     if (validateForm()) {
-      navigation.navigate('SendMessage');
+      
+      navigation.navigate('Reponse');
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      {/* Message d'erreur pour la politique de confidentialité */}
+      {errors.privacyPolicy && <Text style={styles.errorText}>{errors.privacyPolicy}</Text>}
+
       {/* Bouton de fermeture */}
       <Pressable onPress={() => navigation.navigate('Starting')} style={styles.closeButton}>
         <Text style={styles.closeText}>×</Text>
@@ -80,6 +91,7 @@ const ContactUsScreen = ({ navigation }) => {
         <Image source={smallLogo} style={styles.smallLogo} />
         <Text style={styles.logoText}>DuoLib</Text>
       </View>
+
       {/* Logo principal */}
       <Image source={logo} style={styles.logoImage} />
 
