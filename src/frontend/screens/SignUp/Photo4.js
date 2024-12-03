@@ -23,7 +23,7 @@ const Photo4 = ({ navigation }) => {
   };
 
   const handleNext = () => {
-    navigation.navigate('NextStep'); // Modifier selon la navigation suivante
+    navigation.navigate('AccountVerification'); // Modifier selon la navigation suivante
   };
 
   return (
