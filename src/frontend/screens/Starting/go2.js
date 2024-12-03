@@ -52,10 +52,9 @@ const Go2Screen = ({ navigation }) => {
         <Text style={[styles.pageIndicator, currentPage === 3 && styles.activeIndicator]}>●</Text>
       </View>
 
-      {/* Bouton Go (peut être gardé ou supprimé selon ta préférence) */}
-      <Pressable style={styles.goButton} onPress={() => {}}>
-        <Text style={styles.buttonText}>Create an account</Text>
-      </Pressable>
+     <Pressable style={styles.goButton} onPress={() => navigation.navigate('Signup')}>
+  <Text style={styles.buttonText}>Create an account</Text>
+</Pressable>
 
       {/* Phrase "Already have an account? Login" */}
       <Pressable onPress={() => navigation.navigate('WelcomeScreen')}>

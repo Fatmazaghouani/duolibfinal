@@ -19,10 +19,18 @@ import Signup from "./frontend/screens/SignUp/Signup"
 import Signup2 from "./frontend/screens/SignUp/Signup2"
 import Signup3 from "./frontend/screens/SignUp/Signup3"
 import PersonScreen from "./frontend/screens/SignUp/PersonScreen"
+import CompanyScreen from "./frontend/screens/SignUp/CompanyScreen"
 import form from "./frontend/screens/SignUp/form"
 import Step3 from "./frontend/screens/SignUp/Step3"
 import Feed from "./frontend/screens/Home/feed"
-
+import PersonWithDesease from "./frontend/screens/SignUp/PersonWithDesease"
+import Photo1 from "./frontend/screens/SignUp/Photo1"
+import Photo2 from "./frontend/screens/SignUp/Photo2"
+import Photo3 from "./frontend/screens/SignUp/Photo3"
+import Photo4 from "./frontend/screens/SignUp/Photo4"
+import FormCompany from "./frontend/screens/SignUp/FormCompany"
+import Birthday from "./frontend/screens/SignUp/birthday"
+import Photo0 from "./frontend/screens/SignUp/Photo0"
 
 
 
@@ -51,10 +59,18 @@ const App = () => {
         <Stack.Screen name="Signup2" component={Signup2} />
         <Stack.Screen name="Signup3" component={Signup3} />
         <Stack.Screen name="PersonScreen" component={PersonScreen} />
+        <Stack.Screen name="CompanyScreen" component={CompanyScreen} />
         <Stack.Screen name="Feed" component={Feed} />
         <Stack.Screen name="form" component={form} />
         <Stack.Screen name="Step3" component={Step3} />
-        
+        <Stack.Screen name="PersonWithDesease" component={PersonWithDesease} />
+        <Stack.Screen name="Photo1" component={Photo1} />
+        <Stack.Screen name="Photo2" component={Photo2} />
+        <Stack.Screen name="Photo3" component={Photo3} />
+        <Stack.Screen name="Photo4" component={Photo4} />
+        <Stack.Screen name="Birthday" component={Birthday} />
+        <Stack.Screen name="FormCompany" component={FormCompany} />
+        <Stack.Screen name="Photo0" component={Photo0} />
         
       </Stack.Navigator>
     </NavigationContainer>

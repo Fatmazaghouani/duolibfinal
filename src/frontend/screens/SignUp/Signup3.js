@@ -14,7 +14,9 @@ const Signup3 = ({ navigation }) => {
     } else {
       setError(false);
       if (selectedOption === 'person') {
-        navigation.navigate('PersonScreen');
+        navigation.navigate('PersonScreen'); // Navigate to PersonScreen if 'person' is selected
+      } else {
+        navigation.navigate('CompanyScreen'); // Navigate to CompanyScreen for other options
       }
     }
   };

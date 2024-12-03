@@ -49,7 +49,7 @@ const ReponseScreen = ({ navigation }) => {
 
       {/* Buttons */}
       <View style={styles.buttonContainer}>
-        <Pressable style={styles.createAccountButton} onPress={() => navigation.navigate('CreateAccount')}>
+        <Pressable style={styles.createAccountButton} onPress={() => navigation.navigate('Signup')}>
           <Text style={styles.buttonText}>Create Account</Text>
         </Pressable>
         {/* Change the navigation from FAQ to Help */}

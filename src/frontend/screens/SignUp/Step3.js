@@ -13,11 +13,12 @@ const Step3 = ({ navigation }) => {
     } else {
       setErrorMessage('');
       setYouMustClick('');
-      // Naviguer vers une page en fonction de la maladie sélectionnée
+      // Rediriger vers Photo1 si "I have no disease" est sélectionné
       if (selectedDisease === 'noDisease') {
-        navigation.navigate('NoDisease');
+        navigation.navigate('Photo1');
       } else {
-        navigation.navigate('Page2', { selectedDisease });
+        // Sinon, naviguer vers la page en fonction de la maladie sélectionnée
+        navigation.navigate('PersonWithDesease');
       }
     }
   };
