@@ -19,7 +19,10 @@ import Signup from "./frontend/screens/SignUp/Signup"
 import Signup2 from "./frontend/screens/SignUp/Signup2"
 import Signup3 from "./frontend/screens/SignUp/Signup3"
 import PersonScreen from "./frontend/screens/SignUp/PersonScreen"
+import form from "./frontend/screens/SignUp/form"
+import Step3 from "./frontend/screens/SignUp/Step3"
 import Feed from "./frontend/screens/Home/feed"
+
 
 
 
@@ -49,6 +52,8 @@ const App = () => {
         <Stack.Screen name="Signup3" component={Signup3} />
         <Stack.Screen name="PersonScreen" component={PersonScreen} />
         <Stack.Screen name="Feed" component={Feed} />
+        <Stack.Screen name="form" component={form} />
+        <Stack.Screen name="Step3" component={Step3} />
         
         
       </Stack.Navigator>

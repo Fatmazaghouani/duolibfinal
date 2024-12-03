@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
+import CheckBox from 'expo-checkbox';
 import logoImage from '../../images/image 14.png';
 import questionImage from '../../images/image 43.png';
 
@@ -13,14 +14,14 @@ const Signup3 = ({ navigation }) => {
     } else {
       setError(false);
       if (selectedOption === 'person') {
-        navigation.navigate('PersonScreen');  // This navigates to PersonScreen
+        navigation.navigate('PersonScreen');
       }
-      // Add more conditions here for other selections if needed
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      {/* Logo et Name sur la même ligne */}
       <View style={styles.imageContainer}>
         <Image source={logoImage} style={styles.logo} />
         <Text style={styles.title}>
@@ -29,41 +30,41 @@ const Signup3 = ({ navigation }) => {
         </Text>
       </View>
 
+      {/* Texte "Who are you?" */}
       <Text style={styles.questionText}>Who are you?</Text>
+
       <Image source={questionImage} style={styles.image43} />
 
+      {/* Options centrées */}
       <View style={styles.options}>
-        <TouchableOpacity
-          style={[styles.option, selectedOption === 'person' && styles.selectedOption]}
-          onPress={() => setSelectedOption('person')}
-        >
-          <Text style={styles.optionText}>I’m a person</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.option, selectedOption === 'association' && styles.selectedOption]}
-          onPress={() => setSelectedOption('association')}
-        >
-          <Text style={styles.optionText}>I’m an association</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.option, selectedOption === 'foundation' && styles.selectedOption]}
-          onPress={() => setSelectedOption('foundation')}
-        >
-          <Text style={styles.optionText}>I’m a foundation</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.option, selectedOption === 'company' && styles.selectedOption]}
-          onPress={() => setSelectedOption('company')}
-        >
-          <Text style={styles.optionText}>I’m a company</Text>
-        </TouchableOpacity>
+        {['person', 'association', 'foundation', 'company'].map((option, index) => {
+          const colors = ['#28A745', '#FF69B4', '#FFA500', '#007BFF']; // Vert, Rose, Orange, Bleu
+          return (
+            <TouchableOpacity
+              key={option}
+              style={[styles.optionRow, { borderColor: colors[index] }]}
+              onPress={() => setSelectedOption(option)}
+            >
+              <CheckBox
+                value={selectedOption === option}
+                onValueChange={() => setSelectedOption(option)}
+                style={[styles.checkbox, { backgroundColor: colors[index] }]}
+              />
+              <Text style={styles.optionText}>I’m {option}</Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
-      {error && <Text style={styles.errorText}>Please fill in</Text>}
+      {/* Message d'erreur */}
+      {error && <Text style={styles.errorText}>Please select an option</Text>}
 
-      <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-        <Text style={styles.nextButtonText}>Next</Text>
-      </TouchableOpacity>
+      {/* Bouton "Next" */}
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+          <Text style={styles.nextButtonText}>Next</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 };
@@ -73,53 +74,64 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 20,
-    paddingBottom: 40,
   },
   imageContainer: {
+    flexDirection: 'row', // Align the image and text in the same row
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 30,
   },
   logo: {
     width: 100,
     height: 100,
-    marginBottom: 20,
+    resizeMode: 'contain',
+    marginRight: 15,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '600',
-    color: '#FF6F61',
+    fontSize: 30,
+    fontWeight: 'bold',
+    color: '#333',
   },
   nameText: {
-    color: '#FFC107',
+    color: '#4E5D78', // Color for 'Na'
   },
   nameTextSecond: {
-    color: '#FF6F61',
+    color: '#FF87A0', // Color for 'me'
   },
   questionText: {
-    fontSize: 24,
-    fontWeight: '500',
-    color: '#333',
+    color: '#FF87A0', // Rose
+    fontSize: 20,
+    lineHeight: 32,
+    fontWeight: '700',
+    fontFamily: 'Montserrat-Bold',
     marginBottom: 20,
   },
   image43: {
-    width: 150,
-    height: 150,
-    marginBottom: 40,
+    width: 160,
+    height: 160,
+    marginBottom: 40, // Image de question un peu plus basse
   },
   options: {
     width: '100%',
+    alignItems: 'center', // Centrer les options horizontalement
     marginBottom: 40,
   },
-  option: {
-    backgroundColor: '#F5F5F5',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    marginBottom: 10,
+  optionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 15,
+    padding: 10,
+    borderWidth: 2,
+    borderRadius: 20, // Bordures plus arrondies pour chaque option
+    width: '80%',
   },
-  selectedOption: {
-    backgroundColor: '#007BFF',
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12, // Cases circulaires
+    marginRight: 10,
   },
   optionText: {
     fontSize: 18,
@@ -130,12 +142,19 @@ const styles = StyleSheet.create({
     color: 'red',
     marginTop: 10,
     marginBottom: 20,
+    textAlign: 'center',
+  },
+  footer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
   },
   nextButton: {
     backgroundColor: '#007BFF',
     paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 10,
+    paddingHorizontal: 50,
+    borderRadius: 30, // Bouton plus rond
+    marginTop: 20,
   },
   nextButtonText: {
     fontSize: 18,

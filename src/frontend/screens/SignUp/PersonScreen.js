@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
 import CheckBox from 'expo-checkbox';
 import DateTimePickerModal from 'react-native-modal-datetime-picker'; // Importation du calendrier
-
-import image14 from '../../images/image 14.png'; // Import de l'image 14
+import image14 from '../../images/image 14.png'; // Assurez-vous que l'image est accessible
 
 const PersonScreen = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -11,21 +10,20 @@ const PersonScreen = ({ navigation }) => {
   const [nickname, setNickname] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [gender, setGender] = useState(''); // 'male' or 'female'
-  const [showName, setShowName] = useState(false); // Pour afficher le nom
-  const [receiveNewsletter, setReceiveNewsletter] = useState(false); // Pour recevoir la newsletter
-  const [isFormValid, setIsFormValid] = useState(true); // Pour vérifier si le formulaire est valide
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false); // Contrôler la visibilité du calendrier
+  const [showName, setShowName] = useState(false);
+  const [receiveNewsletter, setReceiveNewsletter] = useState(false);
+  const [isFormValid, setIsFormValid] = useState(true);
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
   const [nameError, setNameError] = useState('');
   const [surnameError, setSurnameError] = useState('');
   const [nicknameError, setNicknameError] = useState('');
-  const [genderError, setGenderError] = useState(''); // Erreur pour le genre
+  const [genderError, setGenderError] = useState('');
 
-  // Fonction pour gérer le bouton Next
+  // Validation et navigation
   const handleNext = () => {
     let formValid = true;
 
-    // Validation des champs
     if (!name) {
       setNameError('Please complete your name');
       formValid = false;
@@ -59,31 +57,28 @@ const PersonScreen = ({ navigation }) => {
     }
 
     if (formValid) {
-      navigation.navigate('form'); // Remplacez 'step3' par la prochaine page ou étape
+      navigation.navigate('form'); // Navigation vers la page "form"
     } else {
-      setIsFormValid(false); // Afficher le message d'erreur général
+      setIsFormValid(false); // Afficher un message général d'erreur
     }
   };
 
-  // Fonction pour afficher le calendrier
+  // Gestion du calendrier
   const showDatePicker = () => {
     setDatePickerVisibility(true);
   };
 
-  // Fonction pour cacher le calendrier
   const hideDatePicker = () => {
     setDatePickerVisibility(false);
   };
 
-  // Fonction pour gérer la sélection de la date
   const handleConfirm = (date) => {
-    setDateOfBirth(date.toLocaleDateString()); // Formatage de la date
-    hideDatePicker(); // Cacher le calendrier après la sélection
+    setDateOfBirth(date.toLocaleDateString()); // Format de la date
+    hideDatePicker();
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Logo avec image 14 et le titre */}
       <View style={styles.imageContainer}>
         <Image source={image14} style={styles.logo} />
         <Text style={styles.title}>
@@ -92,16 +87,14 @@ const PersonScreen = ({ navigation }) => {
         </Text>
       </View>
 
-      {/* Titre modifié "Who will use Duolib" */}
       <Text style={styles.questionText}>Who will use Duolib?</Text>
 
-      {/* Gender Selection */}
+      {/* Sélection du genre */}
       <View style={styles.genderSelection}>
         <TouchableOpacity
           style={[
             styles.genderOption,
             gender === 'male' && styles.selectedOption,
-            !gender && styles.errorGenderOption, // Apply error style if no gender selected
           ]}
           onPress={() => setGender('male')}
         >
@@ -111,17 +104,15 @@ const PersonScreen = ({ navigation }) => {
           style={[
             styles.genderOption,
             gender === 'female' && styles.selectedOption,
-            !gender && styles.errorGenderOption, // Apply error style if no gender selected
           ]}
           onPress={() => setGender('female')}
         >
           <Text style={styles.genderText}>Female</Text>
         </TouchableOpacity>
       </View>
-
       {genderError && <Text style={styles.errorText}>{genderError}</Text>}
 
-      {/* Input Fields */}
+      {/* Champs de texte */}
       <TextInput
         style={[styles.input, nameError ? styles.errorInput : null]}
         placeholder="Your name"
@@ -146,25 +137,23 @@ const PersonScreen = ({ navigation }) => {
       />
       {nicknameError && <Text style={styles.errorText}>{nicknameError}</Text>}
 
-      {/* Date of Birth Field with Calendar */}
+      {/* Champ de date */}
       <TouchableOpacity onPress={showDatePicker} style={styles.input}>
-        <Text style={styles.dateText}>{dateOfBirth ? dateOfBirth : 'Select Date of Birth'}</Text>
+        <Text style={styles.dateText}>
+          {dateOfBirth ? dateOfBirth : 'Select Date of Birth'}
+        </Text>
       </TouchableOpacity>
 
-      {/* Error message for general form validation */}
+      {/* Erreur générale */}
       {!isFormValid && (
         <Text style={styles.errorText}>Please complete all required fields.</Text>
       )}
 
-      {/* Checkboxes for preferences */}
+      {/* Checkboxes */}
       <View style={styles.checkboxContainer}>
         <View style={styles.checkboxRow}>
           <CheckBox value={showName} onValueChange={setShowName} />
-          <Text style={styles.checkboxText}>I will use my nickname, I don’t want to show my name</Text>
-        </View>
-        <View style={styles.checkboxRow}>
-          <CheckBox value={!showName} onValueChange={() => setShowName(!showName)} />
-          <Text style={styles.checkboxText}>I want to use and show my name</Text>
+          <Text style={styles.checkboxText}>I will use my nickname</Text>
         </View>
         <View style={styles.checkboxRow}>
           <CheckBox value={receiveNewsletter} onValueChange={setReceiveNewsletter} />
@@ -172,22 +161,17 @@ const PersonScreen = ({ navigation }) => {
         </View>
       </View>
 
-      {/* Next Button */}
+      {/* Bouton Suivant */}
       <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
         <Text style={styles.nextButtonText}>Next</Text>
       </TouchableOpacity>
 
-      {/* Date Picker Modal */}
+      {/* Modal pour la date */}
       <DateTimePickerModal
         isVisible={isDatePickerVisible}
         mode="date"
         onConfirm={handleConfirm}
         onCancel={hideDatePicker}
-        headerTextIOS="Select a date"
-        cancelTextIOS="Cancel"
-        confirmTextIOS="Confirm"
-        textColor="#FF6F61" // Change the text color of the Date Picker
-        datePickerModeAndroid="spinner"
       />
     </ScrollView>
   );
@@ -202,7 +186,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   imageContainer: {
-    flexDirection: 'row', // Align the image and text in the same row
+    flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 30,
   },
@@ -218,17 +202,14 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   nameText: {
-    color: '#4E5D78', // Color for 'Na'
+    color: '#4E5D78',
   },
   nameTextSecond: {
-    color: '#FF87A0', // Color for 'me'
+    color: '#FF87A0',
   },
   questionText: {
-    color: '#FF87A0', // Rose
+    color: '#FF87A0',
     fontSize: 20,
-    lineHeight: 32,
-    fontWeight: "700",
-    fontFamily: "Montserrat-Bold",
     marginBottom: 20,
   },
   genderSelection: {
@@ -245,10 +226,6 @@ const styles = StyleSheet.create({
   selectedOption: {
     backgroundColor: '#007BFF',
   },
-  errorGenderOption: {
-    borderColor: 'red',
-    borderWidth: 1,
-  },
   genderText: {
     fontSize: 18,
     color: '#555',
@@ -260,16 +237,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 15,
     marginBottom: 15,
-    fontSize: 16,
-    color: '#333',
   },
   errorInput: {
     borderColor: 'red',
     borderWidth: 1,
-  },
-  dateText: {
-    fontSize: 16,
-    color: '#333',
   },
   checkboxContainer: {
     width: '100%',
@@ -282,13 +253,13 @@ const styles = StyleSheet.create({
   },
   checkboxText: {
     fontSize: 16,
-    color: '#555',
     marginLeft: 10,
   },
   nextButton: {
     backgroundColor: '#007BFF',
     paddingVertical: 15,
     paddingHorizontal: 50,
+    borderRadius: 10,
   },
   nextButtonText: {
     color: '#fff',
@@ -296,7 +267,6 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: 'red',
-    fontSize: 14,
     marginBottom: 10,
   },
 });
