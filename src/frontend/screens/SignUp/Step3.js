@@ -1,24 +1,56 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image } from 'react-native';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../../../backend/firebaseConfig'; // Assurez-vous que firebaseConfig est configuré correctement
 
 const Step3 = ({ navigation }) => {
-  const [selectedDisease, setSelectedDisease] = useState('');
+  const [diseaseState, setDiseaseState] = useState({
+    noDisease: false,
+    rareDisease: false,
+    cancer: false,
+    metastasisCancer: false,
+    curedCancer: false,
+  });
+
   const [errorMessage, setErrorMessage] = useState('');
   const [youMustClick, setYouMustClick] = useState('');
 
-  const handleNext = () => {
-    if (!selectedDisease) {
-      setErrorMessage('You must click on a box');
-      setYouMustClick('You must click on a box');
+  // Fonction pour gérer la sélection des maladies
+  const handleDiseaseSelection = (disease) => {
+    setDiseaseState((prevState) => ({
+      ...prevState,
+      [disease]: !prevState[disease], // Toggle la valeur true/false
+    }));
+  };
+
+  // Fonction pour gérer la soumission du formulaire
+  const handleNext = async () => {
+    const selectedDiseases = Object.keys(diseaseState).filter(key => diseaseState[key]);
+
+    if (selectedDiseases.length === 0) {
+      setErrorMessage('You must click on at least one box');
+      setYouMustClick('You must click on at least one box');
     } else {
       setErrorMessage('');
       setYouMustClick('');
-      // Rediriger vers Photo1 si "I have no disease" est sélectionné
-      if (selectedDisease === 'noDisease') {
-        navigation.navigate('Photo1');
-      } else {
-        // Sinon, naviguer vers la page en fonction de la maladie sélectionnée
-        navigation.navigate('PersonWithDesease');
+
+      // Enregistrer les données des maladies dans Firestore
+      const diseaseData = { ...diseaseState };
+
+      try {
+        // Enregistrer dans Firestore sous le document de l'utilisateur
+        const userDocRef = doc(db, 'users', auth.currentUser.uid); // Utilisation de l'UID de l'utilisateur
+        await setDoc(userDocRef, { diseaseData }, { merge: true });
+
+        // Navigation conditionnelle en fonction des maladies sélectionnées
+        if (diseaseState.noDisease) {
+          navigation.navigate('Photo1');
+        } else {
+          navigation.navigate('PersonWithDesease');
+        }
+      } catch (error) {
+        console.error('Error saving disease data:', error);
+        alert('Error saving disease data');
       }
     }
   };
@@ -43,17 +75,17 @@ const Step3 = ({ navigation }) => {
       {/* Options de maladies */}
       <TouchableOpacity
         style={styles.option}
-        onPress={() => setSelectedDisease('noDisease')}
+        onPress={() => handleDiseaseSelection('noDisease')}
       >
-        <View style={[styles.checkbox, selectedDisease === 'noDisease' && styles.selectedCheckbox]} />
+        <View style={[styles.checkbox, diseaseState.noDisease && styles.selectedCheckbox]} />
         <Text style={[styles.optionText, styles.noDiseaseText]}>I have no disease</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.option}
-        onPress={() => setSelectedDisease('rareDisease')}
+        onPress={() => handleDiseaseSelection('rareDisease')}
       >
-        <View style={[styles.checkbox, selectedDisease === 'rareDisease' && styles.selectedCheckbox]} />
+        <View style={[styles.checkbox, diseaseState.rareDisease && styles.selectedCheckbox]} />
         <Text style={[styles.optionText, styles.rareDiseaseText]}>I have a rare disease</Text>
       </TouchableOpacity>
 
@@ -63,17 +95,17 @@ const Step3 = ({ navigation }) => {
 
       <TouchableOpacity
         style={styles.option}
-        onPress={() => setSelectedDisease('cancer')}
+        onPress={() => handleDiseaseSelection('cancer')}
       >
-        <View style={[styles.checkbox, selectedDisease === 'cancer' && styles.selectedCheckbox]} />
+        <View style={[styles.checkbox, diseaseState.cancer && styles.selectedCheckbox]} />
         <Text style={[styles.optionText, styles.cancerText]}>I have cancer</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.option}
-        onPress={() => setSelectedDisease('metastasisCancer')}
+        onPress={() => handleDiseaseSelection('metastasisCancer')}
       >
-        <View style={[styles.checkbox, selectedDisease === 'metastasisCancer' && styles.selectedCheckbox]} />
+        <View style={[styles.checkbox, diseaseState.metastasisCancer && styles.selectedCheckbox]} />
         <Text style={[styles.optionText, styles.metastasisCancerText]}>I have metastasis cancer</Text>
       </TouchableOpacity>
 
@@ -83,9 +115,9 @@ const Step3 = ({ navigation }) => {
 
       <TouchableOpacity
         style={styles.option}
-        onPress={() => setSelectedDisease('curedCancer')}
+        onPress={() => handleDiseaseSelection('curedCancer')}
       >
-        <View style={[styles.checkbox, selectedDisease === 'curedCancer' && styles.selectedCheckbox]} />
+        <View style={[styles.checkbox, diseaseState.curedCancer && styles.selectedCheckbox]} />
         <Text style={[styles.optionText, styles.cancerText]}>I had cancer and I'm cured</Text>
       </TouchableOpacity>
 
@@ -101,7 +133,7 @@ const Step3 = ({ navigation }) => {
       </TouchableOpacity>
 
       {/* Forgot password link */}
-      <TouchableOpacity onPress={() => navigation.navigate('ForgotPasswordScreen')}>
+      <TouchableOpacity onPress={() => navigation.navigate('LoginScreen')}>
         <Text style={styles.loginText}>Already have an account? Login here</Text>
       </TouchableOpacity>
     </ScrollView>
@@ -117,7 +149,7 @@ const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center', // Centrer l'image et le texte
+    justifyContent: 'center',
     marginBottom: 20,
   },
   image15Icon: {
@@ -161,7 +193,7 @@ const styles = StyleSheet.create({
     color: '#fa0000',
     textAlign: 'center',
     width: 331,
-    marginTop: 5, // Espacement du message d'erreur
+    marginTop: 5,
   },
   option: {
     flexDirection: 'row',
@@ -222,8 +254,8 @@ const styles = StyleSheet.create({
   errorText: {
     color: 'red',
     fontSize: 16,
-    marginTop: 10,
     textAlign: 'center',
+    marginTop: 10,
   },
 });
 

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
 import CheckBox from 'expo-checkbox';
-import DateTimePickerModal from 'react-native-modal-datetime-picker'; // Importation du calendrier
-import image14 from '../../images/image 14.png'; // Assurez-vous que l'image est accessible
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../../../backend/firebaseConfig'; // Assurez-vous que firebaseConfig est configuré correctement
+import image14 from '../../images/image 14.png';
 
 const PersonScreen = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -10,8 +12,8 @@ const PersonScreen = ({ navigation }) => {
   const [nickname, setNickname] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [gender, setGender] = useState(''); // 'male' or 'female'
-  const [showName, setShowName] = useState(false);
-  const [receiveNewsletter, setReceiveNewsletter] = useState(false);
+  const [showName, setShowName] = useState(false); // "I will use my nickname"
+  const [receiveNewsletter, setReceiveNewsletter] = useState(false); // "I would like to receive your newsletter"
   const [isFormValid, setIsFormValid] = useState(true);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
@@ -21,9 +23,10 @@ const PersonScreen = ({ navigation }) => {
   const [genderError, setGenderError] = useState('');
 
   // Validation et navigation
-  const handleNext = () => {
+  const handleNext = async () => {
     let formValid = true;
 
+    // Validation des champs obligatoires
     if (!name) {
       setNameError('Please complete your name');
       formValid = false;
@@ -56,10 +59,32 @@ const PersonScreen = ({ navigation }) => {
       setGenderError('');
     }
 
+    // Si le formulaire est valide, enregistrer les données dans Firestore et naviguer
     if (formValid) {
-      navigation.navigate('form'); // Navigation vers la page "form"
+      // Créer un objet avec les informations de l'utilisateur
+      const userData = {
+        name,
+        surname,
+        nickname,
+        dateOfBirth,
+        gender,
+        showName,
+        receiveNewsletter,
+      };
+
+      try {
+        // Enregistrer les données dans Firestore
+        const userDocRef = doc(db, 'users', auth.currentUser.uid); // Utilisation de l'UID de l'utilisateur
+        await setDoc(userDocRef, userData, { merge: true });
+
+        // Navigation vers l'écran suivant
+        navigation.navigate('form'); // Remplace par la page que tu souhaites
+      } catch (error) {
+        console.error('Error saving user data:', error);
+        alert('Error saving user data');
+      }
     } else {
-      setIsFormValid(false); // Afficher un message général d'erreur
+      setIsFormValid(false); // Afficher un message d'erreur si le formulaire n'est pas valide
     }
   };
 
@@ -73,7 +98,7 @@ const PersonScreen = ({ navigation }) => {
   };
 
   const handleConfirm = (date) => {
-    setDateOfBirth(date.toLocaleDateString()); // Format de la date
+    setDateOfBirth(date.toLocaleDateString());
     hideDatePicker();
   };
 
@@ -92,19 +117,13 @@ const PersonScreen = ({ navigation }) => {
       {/* Sélection du genre */}
       <View style={styles.genderSelection}>
         <TouchableOpacity
-          style={[
-            styles.genderOption,
-            gender === 'male' && styles.selectedOption,
-          ]}
+          style={[styles.genderOption, gender === 'male' && styles.selectedOption]}
           onPress={() => setGender('male')}
         >
           <Text style={styles.genderText}>Male</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[
-            styles.genderOption,
-            gender === 'female' && styles.selectedOption,
-          ]}
+          style={[styles.genderOption, gender === 'female' && styles.selectedOption]}
           onPress={() => setGender('female')}
         >
           <Text style={styles.genderText}>Female</Text>
@@ -145,9 +164,7 @@ const PersonScreen = ({ navigation }) => {
       </TouchableOpacity>
 
       {/* Erreur générale */}
-      {!isFormValid && (
-        <Text style={styles.errorText}>Please complete all required fields.</Text>
-      )}
+      {!isFormValid && <Text style={styles.errorText}>Please complete all required fields.</Text>}
 
       {/* Checkboxes */}
       <View style={styles.checkboxContainer}>
@@ -265,9 +282,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
   },
+  dateText: {
+    fontSize: 18,
+    color: '#333',
+  },
   errorText: {
     color: 'red',
-    marginBottom: 10,
+    fontSize: 14,
   },
 });
 

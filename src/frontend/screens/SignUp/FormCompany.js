@@ -8,6 +8,8 @@ import {
   Image,
   ScrollView,
 } from 'react-native';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../../../backend/firebaseConfig'; // Assurez-vous que firebaseConfig est configuré correctement
 import image14 from '../../images/image 14.png'; // Assurez-vous du chemin correct
 
 const FormCompany = ({ navigation }) => {
@@ -18,12 +20,12 @@ const FormCompany = ({ navigation }) => {
   const [city, setCity] = useState('');
   const [country, setCountry] = useState('');
   const [referral, setReferral] = useState('');
-
   const [errors, setErrors] = useState({});
 
   // Validation des champs obligatoires
-  const handleNext = () => {
+  const handleNext = async () => {
     const newErrors = {};
+
     if (!phoneNumber) newErrors.phoneNumber = 'Please complete';
     if (!address) newErrors.address = 'Please complete';
     if (!zipCode) newErrors.zipCode = 'Please complete';
@@ -32,15 +34,33 @@ const FormCompany = ({ navigation }) => {
 
     setErrors(newErrors);
 
-    // Si le formulaire est valide, navigation vers l'étape suivante
     if (Object.keys(newErrors).length === 0) {
-      navigation.navigate('Photo0');
+      const addressData = {
+        phoneNumber,
+        address,
+        state,
+        zipCode,
+        city,
+        country,
+        referral,
+      };
+
+      try {
+        // Enregistrer dans Firestore
+        const userDocRef = doc(db, 'users', auth.currentUser.uid);
+        await setDoc(userDocRef, addressData, { merge: true });
+
+        // Navigation vers l'écran suivant
+        navigation.navigate('Photo0'); // Remplacez par la page suivante
+      } catch (error) {
+        console.error('Error saving address data:', error);
+        alert('Error saving address data');
+      }
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Image et titre */}
       <View style={styles.imageContainer}>
         <Image source={image14} style={styles.logo} />
         <Text style={styles.title}>
@@ -51,7 +71,6 @@ const FormCompany = ({ navigation }) => {
 
       <Text style={styles.subtitle}>Duolib will never sell data</Text>
 
-      {/* Champ téléphone */}
       <Text style={styles.label}>Phone number</Text>
       <View style={[styles.inputContainer, errors.phoneNumber && styles.errorInput]}>
         <Image source={require('../../images/phone-icon.png')} style={styles.icon} />
@@ -64,7 +83,6 @@ const FormCompany = ({ navigation }) => {
       </View>
       {errors.phoneNumber && <Text style={styles.errorText}>{errors.phoneNumber}</Text>}
 
-      {/* Champ adresse */}
       <Text style={styles.label}>Address</Text>
       <View style={[styles.inputContainer, errors.address && styles.errorInput]}>
         <Image source={require('../../images/address-icon.png')} style={styles.icon} />
@@ -77,7 +95,6 @@ const FormCompany = ({ navigation }) => {
       </View>
       {errors.address && <Text style={styles.errorText}>{errors.address}</Text>}
 
-      {/* Champ État/Province */}
       <Text style={styles.label}>Address/Province/State (optional)</Text>
       <View style={styles.inputContainer}>
         <Image source={require('../../images/address-icon.png')} style={styles.icon} />
@@ -89,12 +106,9 @@ const FormCompany = ({ navigation }) => {
         />
       </View>
 
-      {/* Champs Zip Code et City */}
       <View style={styles.row}>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.label, errors.zipCode && styles.errorLabel]}>
-            Zip Code
-          </Text>
+          <Text style={[styles.label, errors.zipCode && styles.errorLabel]}>Zip Code</Text>
           <View style={[styles.inputContainer, errors.zipCode && styles.errorInput]}>
             <Image source={require('../../images/zip-icon.png')} style={styles.icon} />
             <TextInput
@@ -107,9 +121,7 @@ const FormCompany = ({ navigation }) => {
           {errors.zipCode && <Text style={styles.errorText}>{errors.zipCode}</Text>}
         </View>
         <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={[styles.label, errors.city && styles.errorLabel]}>
-            City
-          </Text>
+          <Text style={[styles.label, errors.city && styles.errorLabel]}>City</Text>
           <View style={[styles.inputContainer, errors.city && styles.errorInput]}>
             <Image source={require('../../images/zip-icon.png')} style={styles.icon} />
             <TextInput
@@ -123,7 +135,6 @@ const FormCompany = ({ navigation }) => {
         </View>
       </View>
 
-      {/* Champ pays */}
       <Text style={styles.label}>Country</Text>
       <View style={[styles.inputContainer, errors.country && styles.errorInput]}>
         <Image source={require('../../images/country-icon.png')} style={styles.icon} />
@@ -136,7 +147,6 @@ const FormCompany = ({ navigation }) => {
       </View>
       {errors.country && <Text style={styles.errorText}>{errors.country}</Text>}
 
-      {/* Champ référence */}
       <Text style={styles.label}>How did you hear about us? (optional)</Text>
       <View style={styles.inputContainer}>
         <Image source={require('../../images/referral-icon.png')} style={styles.icon} />
@@ -148,7 +158,6 @@ const FormCompany = ({ navigation }) => {
         />
       </View>
 
-      {/* Bouton suivant */}
       <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
         <Text style={styles.nextButtonText}>Next - Go to step 3</Text>
       </TouchableOpacity>
@@ -207,7 +216,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
     paddingHorizontal: 10,
-    marginBottom: 10, // Réduit l'espace entre les champs
+    marginBottom: 10,
   },
   input: {
     flex: 1,

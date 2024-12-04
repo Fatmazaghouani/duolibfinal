@@ -8,6 +8,8 @@ import {
   Image,
   ScrollView,
 } from 'react-native';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../../../backend/firebaseConfig'; // Assurez-vous que firebaseConfig est configuré correctement
 import image14 from '../../images/image 14.png'; // Assurez-vous du chemin correct
 
 const AddressFormScreen = ({ navigation }) => {
@@ -22,8 +24,10 @@ const AddressFormScreen = ({ navigation }) => {
   const [errors, setErrors] = useState({});
 
   // Validation des champs obligatoires
-  const handleNext = () => {
+  const handleNext = async () => {
     const newErrors = {};
+
+    // Validation des champs
     if (!phoneNumber) newErrors.phoneNumber = 'Please complete';
     if (!address) newErrors.address = 'Please complete';
     if (!zipCode) newErrors.zipCode = 'Please complete';
@@ -32,9 +36,29 @@ const AddressFormScreen = ({ navigation }) => {
 
     setErrors(newErrors);
 
-    // Si le formulaire est valide, navigation vers l'étape suivante
+    // Si le formulaire est valide, enregistrer dans Firestore et naviguer
     if (Object.keys(newErrors).length === 0) {
-      navigation.navigate('Step3');
+      const addressData = {
+        phoneNumber,
+        address,
+        state,
+        zipCode,
+        city,
+        country,
+        referral,
+      };
+
+      try {
+        // Enregistrer les données dans Firestore
+        const userDocRef = doc(db, 'users', auth.currentUser.uid); // Utilisation de l'UID de l'utilisateur
+        await setDoc(userDocRef, addressData, { merge: true });
+
+        // Navigation vers l'écran suivant
+        navigation.navigate('Step3'); // Remplace par la page que tu souhaites
+      } catch (error) {
+        console.error('Error saving address data:', error);
+        alert('Error saving address data');
+      }
     }
   };
 
@@ -92,9 +116,7 @@ const AddressFormScreen = ({ navigation }) => {
       {/* Champs Zip Code et City */}
       <View style={styles.row}>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.label, errors.zipCode && styles.errorLabel]}>
-            Zip Code
-          </Text>
+          <Text style={[styles.label, errors.zipCode && styles.errorLabel]}>Zip Code</Text>
           <View style={[styles.inputContainer, errors.zipCode && styles.errorInput]}>
             <Image source={require('../../images/zip-icon.png')} style={styles.icon} />
             <TextInput
@@ -107,9 +129,7 @@ const AddressFormScreen = ({ navigation }) => {
           {errors.zipCode && <Text style={styles.errorText}>{errors.zipCode}</Text>}
         </View>
         <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={[styles.label, errors.city && styles.errorLabel]}>
-            City
-          </Text>
+          <Text style={[styles.label, errors.city && styles.errorLabel]}>City</Text>
           <View style={[styles.inputContainer, errors.city && styles.errorInput]}>
             <Image source={require('../../images/zip-icon.png')} style={styles.icon} />
             <TextInput

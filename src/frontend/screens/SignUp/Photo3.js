@@ -32,7 +32,7 @@ const Photo3 = ({ navigation }) => {
       <View style={styles.headerContainer}>
         <Image source={require('../../images/image 15.png')} style={styles.image15Icon} />
         <Text style={styles.profileText}>
-          Pro<Text style={styles.proText}>Pro</Text>
+          Pro<Text style={styles.proText}>file</Text>
         </Text>
       </View>
 

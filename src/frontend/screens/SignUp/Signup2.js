@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, Image, ScrollView, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome'; // Import des icônes
-import { auth } from '../../../backend/firebaseConfig'; 
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../../../backend/firebaseConfig';
 import { createUserWithEmailAndPassword } from '@firebase/auth';
 
 // Import de l'image
@@ -32,7 +33,16 @@ const Signup2 = ({ navigation }) => {
   const handleSignUp = async () => {
     if (password === confirmPassword && email && password.length >= 8) {
       try {
+        // Création de l'utilisateur via Firebase Auth
         await createUserWithEmailAndPassword(auth, email, password);
+
+        // Stockage de l'email dans Firestore
+        const userDocRef = doc(db, 'users', auth.currentUser.uid);
+        await setDoc(userDocRef, {
+          email: email,
+        });
+
+        // Navigation vers la page suivante
         navigation.navigate('Signup3'); // Naviguer vers Signup3
       } catch (error) {
         console.error('Error during sign up:', error.message);

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker'; // Vous devez installer ce package
-import giftBoxImage from '../../images/image 47.png'; // Assurez-vous que l'image est accessible
-import image14 from '../../images/image 14.png'; // Assurez-vous que l'image est accessible
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../../../backend/firebaseConfig'; // Chemin vers votre fichier firebaseConfig
+import giftBoxImage from '../../images/image 47.png';
+import image14 from '../../images/image 14.png';
 
 const Birthday = ({ navigation }) => {
   const [date, setDate] = useState(new Date());
@@ -25,9 +27,28 @@ const Birthday = ({ navigation }) => {
     setShowPicker(false);
   };
 
+  const saveBirthday = async () => {
+    try {
+      const userDocRef = doc(db, 'users', auth.currentUser.uid); // Utilisation de l'UID Firebase
+      await setDoc(
+        userDocRef,
+        {
+          dateOfBirth: date.toISOString(), // Sauvegarde la date au format ISO
+          age,
+        },
+        { merge: true }
+      );
+      alert('Date of Birth saved successfully!');
+      navigation.navigate('FormCompany'); // Navigue vers l'écran suivant
+    } catch (error) {
+      console.error('Error saving date of birth:', error);
+      alert('Failed to save date of birth. Please try again.');
+    }
+  };
+
   return (
     <View style={styles.container}>
-      {/* En-tête avec Name */}
+      {/* En-tête */}
       <View style={styles.header}>
         <Image source={image14} style={styles.logo} />
         <Text style={styles.name}>
@@ -38,14 +59,13 @@ const Birthday = ({ navigation }) => {
 
       {/* Contenu défilable */}
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Titre principal */}
         <View style={styles.headerContainer}>
           <Text style={styles.headerText}>What's your birthday</Text>
           <Text style={styles.subHeaderText}>Choose your date of birth</Text>
           <Text style={styles.subHeaderText}>You can always make this private later</Text>
         </View>
 
-        {/* Image cadeau */}
+        {/* Image */}
         <Image source={giftBoxImage} style={styles.giftImage} />
 
         {/* Sélecteur de date */}
@@ -53,10 +73,10 @@ const Birthday = ({ navigation }) => {
           <Text style={styles.datePickerText}>Select your birth date</Text>
         </TouchableOpacity>
 
-        {/* Affichage de l'âge */}
+        {/* Âge affiché */}
         <Text style={styles.ageText}>{age} Years old</Text>
 
-        {/* Composant DateTimePicker */}
+        {/* Picker */}
         {showPicker && (
           <DateTimePicker
             value={date}
@@ -67,13 +87,15 @@ const Birthday = ({ navigation }) => {
         )}
       </ScrollView>
 
-      {/* Bouton Next en bas */}
-      <TouchableOpacity style={styles.nextButton} onPress={() => navigation.navigate('FormCompany')}>
-        <Text style={styles.nextButtonText}>Next</Text>
+      {/* Bouton pour sauvegarder et naviguer */}
+      <TouchableOpacity style={styles.nextButton} onPress={saveBirthday}>
+        <Text style={styles.nextButtonText}>Save and Next</Text>
       </TouchableOpacity>
     </View>
   );
 };
+
+
 
 const styles = StyleSheet.create({
   container: {

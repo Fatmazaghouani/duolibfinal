@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
-import image14 from '../../images/image 14.png'; // Remplacez par le chemin correct de l'image
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../../../backend/firebaseConfig'; // Assurez-vous que firebaseConfig est configuré correctement
+import image14 from '../../images/image 14.png';
 
 const CompanyScreen = ({ navigation }) => {
   const [companyName, setCompanyName] = useState('');
@@ -14,10 +16,10 @@ const CompanyScreen = ({ navigation }) => {
   const [nameError, setNameError] = useState('');
   const [surnameError, setSurnameError] = useState('');
 
-  // Validation and navigation
-  const handleNext = () => {
+  const handleNext = async () => {
     let formValid = true;
 
+    // Validation des champs
     if (!companyName) {
       setCompanyNameError('Please complete your company name');
       formValid = false;
@@ -47,9 +49,25 @@ const CompanyScreen = ({ navigation }) => {
     }
 
     if (formValid) {
-      navigation.navigate('Birthday'); // Navigate to the next page
+      const userData = {
+        companyName,
+        website,
+        name,
+        surname,
+        gender,
+      };
+
+      try {
+        const userDocRef = doc(db, 'users', auth.currentUser.uid);
+        await setDoc(userDocRef, userData, { merge: true });
+
+        navigation.navigate('Birthday'); // Navigation vers la prochaine étape
+      } catch (error) {
+        console.error('Error saving user data:', error);
+        alert('Error saving user data');
+      }
     } else {
-      setIsFormValid(false); // Show a general error message
+      setIsFormValid(false);
     }
   };
 
@@ -127,54 +145,49 @@ const CompanyScreen = ({ navigation }) => {
   );
 };
 
-
-  const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
     paddingHorizontal: 20,
   },
   imageContainer: {
     alignItems: 'center',
     marginBottom: 30,
+    marginTop: 20, // Place le contenu plus haut
   },
   rowContainer: {
-    flexDirection: 'row', // Align image and name on the same line
-    alignItems: 'center', // Align vertically
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   logo: {
-    width: 50,
-    height: 50,
+    width: 80, // Agrandir l'image
+    height: 80,
     resizeMode: 'contain',
-    marginRight: 10, // Space between image and text
+    marginRight: 15,
   },
   name: {
-    fontSize: 40,
-    lineHeight: 60,
+    fontSize: 50, // Agrandir le texte
     fontWeight: '700',
     fontFamily: 'Montserrat-Bold',
     textAlign: 'center',
-    width: 140,
   },
   na: {
-    color: '#4e5d78', // Duolib text color
+    color: '#4e5d78',
   },
   me: {
-    color: '#ff87a0', // will never sell data color
+    color: '#ff87a0',
   },
   nameTextSecond: {
     fontSize: 20,
-    lineHeight: 32,
     fontWeight: '700',
     fontFamily: 'Montserrat-Bold',
     color: '#ff87a0',
     textAlign: 'center',
-    width: 327,
+    marginTop: 5,
   },
   questionText: {
-    color: '#FFB400', // Question text color
+    color: '#FFB400',
     fontSize: 20,
     marginBottom: 20,
     textAlign: 'center',
@@ -182,6 +195,7 @@ const CompanyScreen = ({ navigation }) => {
   genderSelection: {
     flexDirection: 'row',
     marginBottom: 20,
+    justifyContent: 'center',
   },
   genderOption: {
     backgroundColor: '#F5F5F5',
@@ -222,9 +236,10 @@ const CompanyScreen = ({ navigation }) => {
   nextButton: {
     backgroundColor: '#007BFF',
     paddingVertical: 15,
-    paddingHorizontal: 50,
     borderRadius: 10,
-    marginTop: 10,
+    alignItems: 'center',
+    width: '90%', // Plus étendu
+    alignSelf: 'center',
   },
   nextButtonText: {
     color: '#fff',

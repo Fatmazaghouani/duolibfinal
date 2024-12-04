@@ -1,21 +1,14 @@
 import React, { useState } from 'react';
-import { FlatList } from 'react-native';
-
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-  Image,
-} from 'react-native';
+import { FlatList, View, Text, TouchableOpacity, ScrollView, StyleSheet, Image } from 'react-native';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../../../backend/firebaseConfig'; // Assurez-vous que firebaseConfig est configuré correctement
 
 const cancerOptions = [
   'Acute lymphocytic leukemia (ALL)',
   'Acute lymphocytic leukemia (ALL) - childhood',
   'Acute myelogenous leukemia (AML)',
   'Acute myelogenous leukemia (AML) - childhood',
-  // ... other cancer options
+  // ... autres options de cancer
 ];
 
 const metastasisOptions = ['I have metastasis', "I don't have metastasis"];
@@ -40,18 +33,37 @@ const PersonWithDisease = ({ navigation }) => {
     }
   };
 
-  const handleNextPress = () => {
-    // Logic to determine the next screen based on user selections
-    if (selectedMetastasis) {
-      navigation.navigate('Photo3');
-    } else if (selectedCancers.length > 0 && selectedRareDiseases.length === 0) {
-      navigation.navigate('Photo3');
-    } else if (selectedRareDiseases.length > 0 && selectedCancers.length === 0) {
-      navigation.navigate('Photo2');
-    } else if (selectedCancers.length > 0 && selectedRareDiseases.length > 0) {
-      navigation.navigate('Photo4');
+  const handleNextPress = async () => {
+    if (
+      selectedMetastasis || 
+      selectedCancers.length > 0 || 
+      selectedRareDiseases.length > 0
+    ) {
+      try {
+        const userDocRef = doc(db, 'users', auth.currentUser.uid); // Utiliser l'UID de l'utilisateur
+
+        // Enregistrer les données dans Firestore
+        await setDoc(userDocRef, {
+          cancers: selectedCancers, // Liste des cancers sélectionnés
+          metastasis: selectedMetastasis, // Métastases sélectionnées
+          rareDiseases: selectedRareDiseases, // Liste des maladies rares sélectionnées
+        }, { merge: true });
+
+        // Navigation en fonction des choix
+        if (selectedMetastasis) {
+          navigation.navigate('Photo3');
+        } else if (selectedCancers.length > 0 && selectedRareDiseases.length === 0) {
+          navigation.navigate('Photo3');
+        } else if (selectedRareDiseases.length > 0 && selectedCancers.length === 0) {
+          navigation.navigate('Photo2');
+        } else if (selectedCancers.length > 0 && selectedRareDiseases.length > 0) {
+          navigation.navigate('Photo4');
+        }
+      } catch (error) {
+        console.error('Error saving disease data:', error);
+        alert('Error saving disease data');
+      }
     } else {
-      // If no boxes are selected, don't proceed
       alert('Please select at least one option');
     }
   };
@@ -92,12 +104,6 @@ const PersonWithDisease = ({ navigation }) => {
                 : 'No cancer'}
             </Text>
           </TouchableOpacity>
-          {selectedCancers.length === 0 && !showCancerDropdown && (
-            <Text style={styles.explanationText}>
-              Sometimes there is a cancer of unknown primary (CUP). This means that a doctor may have found a secondary cancer without knowing where the first cancer originated from. In this case just choose CUP.
-            </Text>
-          )}
-
           {showCancerDropdown && (
             <View style={styles.dropdownList}>
               <FlatList
@@ -226,13 +232,13 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 14, fontWeight: '500', color: '#4E5D78', marginBottom: 10 },
   dropdownBox: { borderWidth: 1, borderColor: '#ccc', borderRadius: 6, padding: 10, backgroundColor: '#fff' },
   dropdownText: { fontSize: 14, color: '#4E5D78' },
-  dropdownList: { borderWidth: 1, borderColor: '#ccc', borderRadius: 6, marginTop: 10, backgroundColor: '#fff' },
+  dropdownList: { borderWidth: 1, borderColor: '#ccc', borderRadius: 6, marginTop: 5, padding: 10 },
   dropdownItem: { padding: 10 },
   dropdownItemText: { fontSize: 14, color: '#4E5D78' },
   selectedItem: { color: '#FFB400' },
-  explanationText: { fontSize: 12, color: '#4E5D78', marginTop: 10, fontStyle: 'italic' },
-  nextButton: { backgroundColor: '#FFB400', padding: 10, borderRadius: 6, marginTop: 20 },
-  nextText: { color: '#fff', fontSize: 16, textAlign: 'center', fontWeight: '500' },
+  explanationText: { fontSize: 12, color: '#090a0a', marginTop: 5 },
+  nextButton: { backgroundColor: '#FFB400', paddingVertical: 12, alignItems: 'center', marginTop: 30, borderRadius: 6 },
+  nextText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 });
 
 export default PersonWithDisease;

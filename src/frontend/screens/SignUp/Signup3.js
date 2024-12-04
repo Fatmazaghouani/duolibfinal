@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import CheckBox from 'expo-checkbox';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../../../backend/firebaseConfig'; // Assurez-vous que firebaseConfig est configuré correctement
 import logoImage from '../../images/image 14.png';
 import questionImage from '../../images/image 43.png';
 
@@ -8,15 +10,28 @@ const Signup3 = ({ navigation }) => {
   const [selectedOption, setSelectedOption] = useState(null);
   const [error, setError] = useState(false);
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!selectedOption) {
       setError(true);
     } else {
       setError(false);
-      if (selectedOption === 'person') {
-        navigation.navigate('PersonScreen'); // Navigate to PersonScreen if 'person' is selected
-      } else {
-        navigation.navigate('CompanyScreen'); // Navigate to CompanyScreen for other options
+
+      // Enregistrer l'option sélectionnée dans Firestore
+      const userDocRef = doc(db, 'users', auth.currentUser.uid); // Utilisation de l'UID de l'utilisateur pour la collection Firestore
+      try {
+        await setDoc(userDocRef, {
+          type: selectedOption, // Ajout du type sélectionné dans le document de l'utilisateur
+        }, { merge: true });
+
+        // Navigation selon le type sélectionné
+        if (selectedOption === 'person') {
+          navigation.navigate('PersonScreen');
+        } else {
+          navigation.navigate('CompanyScreen'); // Vous pouvez personnaliser les autres écrans comme 'AssociationScreen' ou 'FoundationScreen'
+        }
+      } catch (error) {
+        console.error('Error saving user type:', error);
+        alert('Error saving user type');
       }
     }
   };
