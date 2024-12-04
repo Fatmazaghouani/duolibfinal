@@ -33,6 +33,9 @@ import Birthday from "./frontend/screens/SignUp/birthday"
 import Photo0 from "./frontend/screens/SignUp/Photo0"
 import AccountVerification from "./frontend/screens/SignUp/AccountVerification"
 import PasswordReset from "./frontend/screens/ResetPassword/PasswordReset"
+import ChatScreen from './frontend/screens/Messagerie/ChatScreen';
+import MessagesScreen from './frontend/screens/Messagerie/MessagesScreen';
+
 
 
 
@@ -75,6 +78,8 @@ const App = () => {
         <Stack.Screen name="Photo0" component={Photo0} />
         <Stack.Screen name="AccountVerification" component={AccountVerification} />
         <Stack.Screen name="PasswordReset" component={PasswordReset} />
+        <Stack.Screen name="Chat" component={ChatScreen} />
+        <Stack.Screen name="Messages" component={MessagesScreen} />
         
       </Stack.Navigator>
     </NavigationContainer>
