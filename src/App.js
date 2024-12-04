@@ -32,6 +32,7 @@ import FormCompany from "./frontend/screens/SignUp/FormCompany"
 import Birthday from "./frontend/screens/SignUp/birthday"
 import Photo0 from "./frontend/screens/SignUp/Photo0"
 import AccountVerification from "./frontend/screens/SignUp/AccountVerification"
+import PasswordReset from "./frontend/screens/ResetPassword/PasswordReset"
 
 
 
@@ -73,6 +74,7 @@ const App = () => {
         <Stack.Screen name="FormCompany" component={FormCompany} />
         <Stack.Screen name="Photo0" component={Photo0} />
         <Stack.Screen name="AccountVerification" component={AccountVerification} />
+        <Stack.Screen name="PasswordReset" component={PasswordReset} />
         
       </Stack.Navigator>
     </NavigationContainer>

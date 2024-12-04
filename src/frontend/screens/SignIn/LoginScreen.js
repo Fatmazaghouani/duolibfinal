@@ -89,7 +89,10 @@ const LoginScreen = ({ navigation }) => {
       </View>
 
       {/* Mot de passe oublié */}
-      <Text style={styles.forgotPassword}>Forgot password</Text>
+     
+      <Text style={styles.forgotPassword} onPress={() => navigation.navigate('PasswordReset')}>
+  Forgot password
+</Text>
 
       {/* Section pour l'inscription */}
       <View style={styles.signupContainer}>
