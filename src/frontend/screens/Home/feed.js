@@ -95,7 +95,7 @@ const Feed = ({ navigation }) => {
           <FontAwesome5 name="globe" size={20} color="#000" />
           <Text style={styles.bottomText}>Community</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('Forum')}>
+        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('ForumScreen')}>
           <FontAwesome5 name="comments" size={20} color="#000" />
           <Text style={styles.bottomText}>Forum</Text>
         </TouchableOpacity>

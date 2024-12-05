@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Starting from './frontend/screens/Starting/Starting';
@@ -35,14 +35,21 @@ import AccountVerification from "./frontend/screens/SignUp/AccountVerification"
 import PasswordReset from "./frontend/screens/ResetPassword/PasswordReset"
 import ChatScreen from './frontend/screens/Messagerie/ChatScreen';
 import MessagesScreen from './frontend/screens/Messagerie/MessagesScreen';
-
-
-
-
+import ForumScreen from './frontend/screens/Forum/ForumScreen';
+import ForumColonCancer from './frontend/screens/Forum/ForumColonCancer';
+import ForumChatRules from './frontend/screens/Forum/ForumChatRules';
+import SettingsScreen from './frontend/screens/Settings/Settings';
+import EditProfileScreen from './frontend/screens/Settings/Edit Profile';
+import NotificationSettingsScreen from './frontend/screens/Settings/Notification';
+import LanguageScreen from './frontend/screens/Settings/Language';
+import ViewingSharingScreen from './frontend/screens/Settings/Viewing and Sharing';
+import PasswordSecurityScreen from './frontend/screens/Settings/Password & Security';
+import Logout from "./frontend/screens/Settings/Logout";
 
 const Stack = createStackNavigator();
 
 const App = () => {
+ 
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Starting">
@@ -80,7 +87,17 @@ const App = () => {
         <Stack.Screen name="PasswordReset" component={PasswordReset} />
         <Stack.Screen name="Chat" component={ChatScreen} />
         <Stack.Screen name="Messages" component={MessagesScreen} />
-        
+        <Stack.Screen name="ForumScreen" component={ForumScreen}  />
+        <Stack.Screen name="ForumColonCancer" component={ForumColonCancer}  />
+        <Stack.Screen name="ForumChatRules" component={ForumChatRules}/>
+        <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen name="Edit Profile" component={EditProfileScreen} />
+        <Stack.Screen name="Notification" component={NotificationSettingsScreen} />
+        <Stack.Screen name="Language" component={LanguageScreen} />
+        <Stack.Screen name="Viewing and Sharing" component={ViewingSharingScreen} />
+        <Stack.Screen name="Password & Security" component={PasswordSecurityScreen} />
+        <Stack.Screen name="Logout" component={Logout} />
+       
       </Stack.Navigator>
     </NavigationContainer>
   );
