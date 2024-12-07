@@ -87,7 +87,7 @@ const Feed = ({ navigation }) => {
           <FontAwesome5 name="home" size={20} color="#000" />
           <Text style={styles.bottomText}>Feed</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('Duo')}>
+        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('DuoStart')}>
           <FontAwesome5 name="users" size={20} color="#000" />
           <Text style={styles.bottomText}>Duo</Text>
         </TouchableOpacity>

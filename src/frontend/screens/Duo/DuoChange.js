@@ -1,0 +1,229 @@
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native';
+import { FontAwesome5 } from '@expo/vector-icons'; // For additional icons
+
+const DuoChange = () => {
+  const [reasons, setReasons] = useState({
+    noContact: false,
+    notMyChoice: false,
+    unpleasantPerson: false,
+    otherReasons: false,
+  });
+
+  const navigation = useNavigation();
+
+  const toggleReason = (key, value) => {
+    setReasons((prevReasons) => ({
+      ...prevReasons,
+      [key]: value,
+    }));
+  };
+
+  return (
+    <View style={styles.container}>
+      {/* Header with Search Bar */}
+      <View style={styles.header}>
+        <TouchableOpacity>
+          <Icon name="person-circle-outline" size={30} color="#555" /> {/* Profile Icon */}
+        </TouchableOpacity>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="🔍 Search..."
+          placeholderTextColor="#aaa"
+        />
+        <TouchableOpacity onPress={() => navigation.navigate('Messages')}>
+          <Icon name="chatbubble-ellipses-outline" size={30} color="#555" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Main Content with ScrollView */}
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.title}>
+          Change Duo: please tell us why you want to change Duo
+        </Text>
+
+        {/* Questions */}
+        {[{
+          key: 'noContact',
+          label: 'Impossible to get in touch with them or no contact',
+        }, {
+          key: 'notMyChoice',
+          label: 'The person does not fit my choice',
+        }, {
+          key: 'unpleasantPerson',
+          label: 'Unpleasant person',
+        }, {
+          key: 'otherReasons',
+          label: 'Other reasons',
+        }].map((option) => (
+          <View key={option.key} style={styles.question}>
+            <Text style={styles.questionText}>{option.label}</Text>
+            <View style={styles.options}>
+              <TouchableOpacity
+                style={[styles.option, reasons[option.key] ? styles.activeOptionYes : styles.option]}
+                onPress={() => toggleReason(option.key, true)}
+              >
+                <Text style={styles.optionText}>Yes</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.option, !reasons[option.key] ? styles.activeOptionNo : styles.option]}
+                onPress={() => toggleReason(option.key, false)}
+              >
+                <Text style={styles.optionText}>No</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ))}
+
+        {/* Buttons in same line */}
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.controlsButtons} onPress={() => navigation.navigate('DuoDone')}>
+            <Text style={styles.text}>Select a new Duo</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.controlsButtons, styles.homeButton]} onPress={() => navigation.navigate('Feed')}>
+            <Text style={styles.text}>Go to Home Page</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+
+      {/* Footer with navigation items */}
+      <View style={styles.footer}>
+        {[{ name: 'home', label: 'Feed' }, 
+           { name: 'users', label: 'Duo', active: true }, 
+           { name: 'user-circle', label: 'Profile' }, 
+           { name: 'globe', label: 'Community' }, 
+           { name: 'comments', label: 'Forum' }, 
+           { name: 'bell', label: 'Notifications' }, 
+           { name: 'cogs', label: 'Settings' }].map((item, index) => (
+          <TouchableOpacity key={index} style={styles.footerItem} onPress={() => navigation.navigate(item.label)}>
+            <FontAwesome5 name={item.name} size={20} color={item.active ? '#00ADEF' : '#000'} />
+            <Text style={[styles.footerText, item.active && styles.activeFooterText]}>{item.label}</Text>
+            {item.active && <View style={styles.activeIndicator} />}
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f7f7f7',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  searchInput: {
+    flex: 1,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    paddingLeft: 15,
+    marginHorizontal: 10,
+    fontSize: 16,
+    backgroundColor: '#fff',
+  },
+  content: {
+    padding: 20,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 20,
+  },
+  question: {
+    marginBottom: 20,
+  },
+  questionText: {
+    fontSize: 16,
+    color: '#444',
+  },
+  options: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '60%', // Control the width of the options
+  },
+  option: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 12,
+  },
+  activeOptionYes: {
+    backgroundColor: '#37cdff', // Green for Yes
+  },
+  activeOptionNo: {
+    backgroundColor: '#f44336', // Red for No
+  },
+  optionText: {
+    fontSize: 16,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  controlsButtons: {
+    borderRadius: 48,
+    backgroundColor: "#37cdff",
+    width: "48%",
+    flexDirection: "row",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  homeButton: {
+    marginLeft: 10, // Adds space between buttons
+  },
+  text: {
+    fontSize: 14,
+    lineHeight: 16,
+    fontWeight: "800",
+    fontFamily: "Montserrat-ExtraBold",
+    color: "#fff",
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#ddd',
+    paddingVertical: 10,
+    backgroundColor: '#fff',
+  },
+  footerItem: {
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: 12,
+    color: '#777',
+  },
+  activeFooterText: {
+    color: '#00ADEF',
+    fontWeight: '600',
+  },
+  activeIndicator: {
+    width: 30,
+    height: 2,
+    backgroundColor: '#00ADEF',
+    marginTop: 5,
+  },
+});
+
+export default DuoChange;

@@ -45,6 +45,11 @@ import LanguageScreen from './frontend/screens/Settings/Language';
 import ViewingSharingScreen from './frontend/screens/Settings/Viewing and Sharing';
 import PasswordSecurityScreen from './frontend/screens/Settings/Password & Security';
 import Logout from "./frontend/screens/Settings/Logout";
+import DuoStart from "./frontend/screens/Duo/DuoStart";
+import DuoPreferences from "./frontend/screens/Duo/DuoPreferences";
+import DuoSuggestions from "./frontend/screens/Duo/DuoSuggestions";
+import DuoDone from "./frontend/screens/Duo/DuoDone";
+import DuoChange from "./frontend/screens/Duo/DuoChange";
 
 const Stack = createStackNavigator();
 
@@ -97,6 +102,11 @@ const App = () => {
         <Stack.Screen name="Viewing and Sharing" component={ViewingSharingScreen} />
         <Stack.Screen name="Password & Security" component={PasswordSecurityScreen} />
         <Stack.Screen name="Logout" component={Logout} />
+        <Stack.Screen name="DuoStart" component={DuoStart} />
+        <Stack.Screen name="DuoPreferences" component={DuoPreferences} />
+        <Stack.Screen name="DuoSuggestions" component={DuoSuggestions} />
+        <Stack.Screen name="DuoDone" component={DuoDone} />
+        <Stack.Screen name="DuoChange" component={DuoChange} />
        
       </Stack.Navigator>
     </NavigationContainer>
