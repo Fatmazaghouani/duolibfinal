@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { FontAwesome5 } from '@expo/vector-icons'; // For additional icons
+import { getAuth } from 'firebase/auth'; // Import Firebase Auth
+import { getFirestore, doc, setDoc } from 'firebase/firestore'; // Import Firestore
 
 const DuoChange = () => {
   const [reasons, setReasons] = useState({
@@ -14,11 +16,39 @@ const DuoChange = () => {
 
   const navigation = useNavigation();
 
+  const auth = getAuth(); // Firebase Auth
+  const db = getFirestore(); // Firestore
+
   const toggleReason = (key, value) => {
     setReasons((prevReasons) => ({
       ...prevReasons,
       [key]: value,
     }));
+  };
+
+  // Fonction pour sauvegarder les réponses dans Firestore
+  const saveDuoChange = async () => {
+    const userId = auth.currentUser ? auth.currentUser.uid : null;
+
+    if (userId) {
+      try {
+        await setDoc(doc(db, 'DuoChange', userId), {
+          noContact: reasons.noContact,
+          notMyChoice: reasons.notMyChoice,
+          unpleasantPerson: reasons.unpleasantPerson,
+          otherReasons: reasons.otherReasons,
+          userId: userId, // Sauvegarde l'ID de l'utilisateur
+          timestamp: new Date().toISOString(), // Date et heure de la soumission
+        });
+        console.log('Réponses enregistrées avec succès!');
+        // Rediriger vers la page suivante après enregistrement
+        navigation.navigate('DuoPreferences');
+      } catch (error) {
+        console.error('Erreur lors de l\'enregistrement des données :', error);
+      }
+    } else {
+      console.error('Aucun utilisateur authentifié');
+    }
   };
 
   return (
@@ -79,7 +109,7 @@ const DuoChange = () => {
 
         {/* Buttons in same line */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.controlsButtons} onPress={() => navigation.navigate('DuoDone')}>
+          <TouchableOpacity style={styles.controlsButtons} onPress={saveDuoChange}>
             <Text style={styles.text}>Select a new Duo</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.controlsButtons, styles.homeButton]} onPress={() => navigation.navigate('Feed')}>

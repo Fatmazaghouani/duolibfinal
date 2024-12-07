@@ -4,6 +4,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../../../backend/firebaseConfig'; // Assurez-vous que firebaseConfig est configuré correctement
 import image14 from '../../images/image 14.png';
 
+
 const CompanyScreen = ({ navigation }) => {
   const [companyName, setCompanyName] = useState('');
   const [website, setWebsite] = useState('');

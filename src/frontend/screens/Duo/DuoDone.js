@@ -1,14 +1,20 @@
-import React from 'react'; 
+import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons'; 
-import { useNavigation } from '@react-navigation/native'; 
-import { FontAwesome5 } from '@expo/vector-icons'; // Pour les icônes supplémentaires
+import { useNavigation, useRoute } from '@react-navigation/native'; 
+import { FontAwesome5 } from '@expo/vector-icons';
 
 const DuoDone = () => {
-  const navigation = useNavigation(); 
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { userId, userName, userCountry, userAge, userDiseases } = route.params;
 
   const goToMessages = () => {
     navigation.navigate('Messages');
+  };
+
+  const goToDuoChange = () => {
+    navigation.navigate('DuoChange');
   };
 
   return (
@@ -29,25 +35,48 @@ const DuoDone = () => {
 
       {/* Contenu principal */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Details of Paul</Text>
+        <Text style={styles.title}>Details of {userName}</Text>
         <Text style={styles.additionalText}>
-          You have now a Duo. {"\n"}
-          We will send him a notification and your email address. {"\n\n"}
-          If it doesn’t fit your choices, you can change it later. {"\n\n"}
-          You can send him a message with this icon{' '}
+          You now have a Duo. {"\n"}
+          We will send them a notification and your email address. {"\n\n"}
+          If it doesn't fit your choices, you can change it later. {"\n\n"}
+          You can send them a message with this icon{' '}
           <Icon name="chatbubble-outline" size={20} color="#00ADEF" /> {"\n\n"}
-          or contact him at the following email address{' '}
+          or contact them at the following email address{' '}
           <Icon name="mail-outline" size={20} color="#00ADEF" />.
         </Text>
+        
         <Image source={require('../../images/rocket.png')} style={styles.userImage} />
-        <Text style={styles.userName}>Paul</Text>
-        <Text style={styles.userDetails}>Country: France - Age: 30 - Disease: Colon Cancer</Text>
+        <Text style={styles.userName}>{userName}</Text>
+        <Text style={styles.userDetails}>
+  Country: {userCountry} - Age: {userAge} - Disease: 
+  {userDiseases && userDiseases.cancer && (
+    <Text style={styles.diseaseText}>Cancer, </Text>
+  )}
+  {userDiseases && userDiseases.curedCancer && (
+    <Text style={styles.diseaseText}>Cured Cancer, </Text>
+  )}
+  {userDiseases && userDiseases.metastasisCancer && (
+    <Text style={styles.diseaseText}>Metastasis Cancer, </Text>
+  )}
+  {userDiseases && userDiseases.rareDisease && (
+    <Text style={styles.diseaseText}>Rare Disease, </Text>
+  )}
+  {!userDiseases || 
+    (!userDiseases.cancer && 
+    !userDiseases.curedCancer && 
+    !userDiseases.metastasisCancer && 
+    !userDiseases.rareDisease) && (
+    <Text style={styles.diseaseText}>No disease</Text>
+  )}
+</Text>
+
       </ScrollView>
 
       {/* Bouton "Change Duo" */}
       <TouchableOpacity
         style={styles.changeDuoButton}
-        onPress={() => navigation.navigate('DuoChange')} 
+        onPress={goToDuoChange} 
       >
         <Text style={styles.changeDuoText}>Change Duo</Text>
       </TouchableOpacity>

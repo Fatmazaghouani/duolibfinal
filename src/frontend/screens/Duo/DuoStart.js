@@ -28,6 +28,11 @@ const DuoStart = () => {
     navigation.navigate('Messages');  // Naviguer vers la page MessagesScreen
   };
 
+  // Fonction pour naviguer vers ChangeDuo
+  const goToChangeDuo = () => {
+    navigation.navigate('DuoChange');  // Naviguer vers la page ChangeDuo
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -66,7 +71,7 @@ const DuoStart = () => {
           understand your anxieties?
         </Text>
         <Text style={styles.paragraph}>
-          The objective is to give each person to find is Duo, and exchange or share with confidence while helping each
+          The objective is to give each person to find their Duo, and exchange or share with confidence while helping each
           other to overcome difficult events.
         </Text>
 
@@ -76,9 +81,19 @@ const DuoStart = () => {
           style={styles.rocketIcon} // Utilisation d'un style spécifique pour la fusée
         />
 
-        {/* Button */}
+        {/* Button Go */}
         <TouchableOpacity style={styles.button} onPress={goToDuoPreferences}>
           <Text style={styles.buttonText}>Go</Text>
+        </TouchableOpacity>
+
+        {/* Text asking if they already have a Duo */}
+        <Text style={styles.changeText}>
+          Already have a Duo and want to change it? 
+        </Text>
+
+        {/* Button Change My Duo */}
+        <TouchableOpacity style={styles.changeButton} onPress={goToChangeDuo}>
+          <Text style={styles.buttonText}>Change my Duo</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -185,6 +200,21 @@ const styles = StyleSheet.create({
     height: 150,
     alignSelf: 'center',
     marginTop: 20,
+  },
+  changeText: {
+    fontSize: 16,
+    color: '#555',
+    textAlign: 'center',
+    marginVertical: 10,
+  },
+  changeButton: {
+    backgroundColor: '#FF5733', // Color for the change button
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 24,
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginVertical: 10,
   },
   footer: {
     flexDirection: 'row',

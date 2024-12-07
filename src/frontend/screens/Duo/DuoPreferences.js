@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons'; // Pour les icônes
-import { useNavigation } from '@react-navigation/native'; // Importer useNavigation
-import { FontAwesome5 } from '@expo/vector-icons'; // Pour les icônes supplémentaires
+import Icon from 'react-native-vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native';
+import { FontAwesome5 } from '@expo/vector-icons';
 
 const DuoPreferences = () => {
   const [preferences, setPreferences] = useState({
@@ -11,53 +11,46 @@ const DuoPreferences = () => {
     sameDisease: null,
     similarAge: null,
   });
-  const [searchText, setSearchText] = useState(''); // État pour le texte de recherche
-  const navigation = useNavigation(); // Récupérer l'objet de navigation
+  const [searchText, setSearchText] = useState('');
+  const navigation = useNavigation();
 
   const handleSelection = (key, value) => {
     setPreferences({ ...preferences, [key]: value });
   };
 
-  // Fonction pour naviguer vers DuoSuggestions
   const handleSeeResults = () => {
-    navigation.navigate('DuoSuggestions'); // Navigation vers DuoSuggestions
+    navigation.navigate('DuoSuggestions', { preferences }); // Pass preferences as params
   };
 
   const goToProfile = () => {
-    navigation.navigate('Profile'); // Naviguer vers la page Profile
+    navigation.navigate('Profile');
   };
 
   const goToMessages = () => {
-    navigation.navigate('Messages'); // Naviguer vers la page MessagesScreen
+    navigation.navigate('Messages');
   };
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity>
-          <Icon name="person-circle-outline" size={30} color="#555" /> {/* Icone de profil */}
+          <Icon name="person-circle-outline" size={30} color="#555" />
         </TouchableOpacity>
-
-        {/* Barre de recherche */}
         <TextInput
           style={styles.searchInput}
           placeholder="🔍 Search for something here..."
           value={searchText}
-          onChangeText={(text) => setSearchText(text)} // Mise à jour du texte de recherche
+          onChangeText={(text) => setSearchText(text)}
         />
-
-        {/* Icône de messagerie */}
         <TouchableOpacity onPress={goToMessages}>
           <Icon name="chatbubble-ellipses-outline" size={30} color="#555" />
         </TouchableOpacity>
       </View>
 
-      {/* Main Content with ScrollView */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Duo preference</Text>
+      <ScrollView style={styles.content}>
+        <Text style={styles.title}>Duo Preferences</Text>
 
-        {/* Questions */}
+        {/* Accept Duo */}
         <View style={styles.question}>
           <Text style={styles.questionText}>I accept to have a Duo</Text>
           <View style={styles.options}>
@@ -78,8 +71,9 @@ const DuoPreferences = () => {
           </View>
         </View>
 
+        {/* Same Country */}
         <View style={styles.question}>
-          <Text style={styles.questionText}>A person living in same country</Text>
+          <Text style={styles.questionText}>A person living in the same country</Text>
           <View style={styles.options}>
             <TouchableOpacity
               style={[styles.option, preferences.sameCountry === 'yes' && styles.activeOption]}
@@ -98,8 +92,9 @@ const DuoPreferences = () => {
           </View>
         </View>
 
+        {/* Same Disease */}
         <View style={styles.question}>
-          <Text style={styles.questionText}>A person with the same disease (cancer and/or rare disease)</Text>
+          <Text style={styles.questionText}>A person with the same disease (cancer or rare disease)</Text>
           <View style={styles.options}>
             <TouchableOpacity
               style={[styles.option, preferences.sameDisease === 'yes' && styles.activeOption]}
@@ -118,10 +113,9 @@ const DuoPreferences = () => {
           </View>
         </View>
 
+        {/* Similar Age */}
         <View style={styles.question}>
-          <Text style={styles.questionText}>
-            A person who is close in age to mine with +/- 30 years
-          </Text>
+          <Text style={styles.questionText}>A person who is close in age to mine with +/- 30 years</Text>
           <View style={styles.options}>
             <TouchableOpacity
               style={[styles.option, preferences.similarAge === 'yes' && styles.activeOption]}
@@ -140,49 +134,23 @@ const DuoPreferences = () => {
           </View>
         </View>
 
-        {/* Button */}
         <TouchableOpacity style={styles.button} onPress={handleSeeResults}>
-          <Text style={styles.buttonText}>See results</Text>
+          <Text style={styles.buttonText}>See Results</Text>
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Footer */}
       <View style={styles.footer}>
-        {/* Feed */}
         <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate('Feed')}>
           <FontAwesome5 name="home" size={20} color="#000" />
           <Text style={styles.footerText}>Feed</Text>
         </TouchableOpacity>
-        {/* Duo avec indicateur actif */}
         <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate('DuoStart')}>
           <FontAwesome5 name="users" size={20} color="#00ADEF" />
           <Text style={[styles.footerText, styles.activeFooterText]}>Duo</Text>
-          <View style={styles.activeIndicator} /> {/* Barre active sous Duo */}
         </TouchableOpacity>
-        {/* Profile */}
         <TouchableOpacity style={styles.footerItem} onPress={goToProfile}>
           <FontAwesome5 name="user-circle" size={20} color="#000" />
           <Text style={styles.footerText}>Profile</Text>
-        </TouchableOpacity>
-        {/* Community */}
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate('Community')}>
-          <FontAwesome5 name="globe" size={20} color="#000" />
-          <Text style={styles.footerText}>Community</Text>
-        </TouchableOpacity>
-        {/* Forum */}
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate('ForumScreen')}>
-          <FontAwesome5 name="comments" size={20} color="#000" />
-          <Text style={styles.footerText}>Forum</Text>
-        </TouchableOpacity>
-        {/* Notifications */}
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate('Notifications')}>
-          <FontAwesome5 name="bell" size={20} color="#000" />
-          <Text style={styles.footerText}>Notifications</Text>
-        </TouchableOpacity>
-        {/* Settings */}
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate('Settings')}>
-          <FontAwesome5 name="cogs" size={20} color="#000" />
-          <Text style={styles.footerText}>Settings</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -269,17 +237,11 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 12,
-    color: '#333',
+    color: '#000',
   },
   activeFooterText: {
-    fontWeight: 'bold',
     color: '#00ADEF',
-  },
-  activeIndicator: {
-    width: 30,
-    height: 2,
-    backgroundColor: '#00ADEF',
-    marginTop: 5,
+    fontWeight: 'bold',
   },
 });
 

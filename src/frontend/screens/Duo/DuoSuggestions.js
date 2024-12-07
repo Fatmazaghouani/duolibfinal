@@ -1,195 +1,378 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons'; // Pour les icônes
-import { useNavigation } from '@react-navigation/native'; // Importer useNavigation
-import { FontAwesome5 } from '@expo/vector-icons'; // Pour les icônes supplémentaires
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { getFirestore, collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
+import { firebaseApp } from '../../../backend/firebaseConfig';
+import { getAuth } from 'firebase/auth';
+import { updateDoc } from 'firebase/firestore';
 
-const DuoSuggestions = () => {
-  const [searchText, setSearchText] = useState(''); // État pour le texte de recherche
-  const navigation = useNavigation(); // Récupérer l'objet de navigation
 
-  // Exemple de données de suggestions de duos (à personnaliser)
-  const duoResults = [
-    { name: 'John Doe', country: 'USA', disease: 'Cancer', age: 28 },
-    { name: 'Jane Smith', country: 'Canada', disease: 'Rare Disease', age: 30 },
-    { name: 'Alice Brown', country: 'UK', disease: 'Cancer', age: 35 },
-  ];
+// Fonction pour calculer l'âge
+const calculateAge = (birthDate) => {
+  const birth = new Date(birthDate.split('/').reverse().join('-'));
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+};
 
-  const goToProfile = () => {
-    navigation.navigate('Profile'); // Naviguer vers la page Profile
+const DuoSuggestions = ({ route }) => {
+  const { preferences } = route.params;
+  const [duoResults, setDuoResults] = useState([]);
+  const navigation = useNavigation();
+  const [userCountry, setUserCountry] = useState('');
+  const [userId, setUserId] = useState('');
+  const [userAge, setUserAge] = useState(0);
+  const [userDiseases, setUserDiseases] = useState({});
+  const [showMessage, setShowMessage] = useState(false);
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (user) {
+        try {
+          const db = getFirestore(firebaseApp);
+          const userDoc = doc(db, 'users', user.uid);
+          const userSnapshot = await getDoc(userDoc);
+
+          if (userSnapshot.exists()) {
+            const userData = userSnapshot.data();
+            const age = calculateAge(userData.dateOfBirth);
+            setUserCountry(userData.country);
+            setUserId(user.uid);
+            setUserAge(age);
+            setUserDiseases(userData.diseaseData || {}); // Stocker les données de maladie
+
+            if (preferences.acceptDuo === 'yes') {
+              // Filtrage selon les préférences de l'utilisateur
+              if (preferences.similarAge === 'yes' && preferences.sameCountry === 'yes' && preferences.sameDisease === 'yes') {
+                fetchUsersByAgeAndDisease(userData.dateOfBirth, user.uid, userData.diseaseData);
+              } else if (preferences.sameCountry === 'yes' && preferences.sameDisease === 'yes') {
+                fetchUsersInSameCountryAndDisease(userData.country, user.uid, userData.diseaseData);
+              } else if (preferences.similarAge === 'yes' && preferences.sameDisease === 'yes') {
+                fetchUsersByAgeAndDisease(userData.dateOfBirth, user.uid, userData.diseaseData);
+              } else if (preferences.sameCountry === 'yes') {
+                fetchUsersInSameCountry(userData.country, user.uid, userData.dateOfBirth);
+              } else if (preferences.similarAge === 'yes') {
+                fetchUsersByAge(userData.dateOfBirth, user.uid);
+              } else if (preferences.sameDisease === 'yes') {
+                fetchUsersWithSameDisease(userData.diseaseData, user.uid);
+              }
+            } else {
+              setShowMessage(true); // Afficher un message si acceptDuo est 'non'
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching user details:', error);
+        }
+      }
+    };
+
+    fetchUserDetails();
+  }, [preferences]);
+
+  // Fonction ajoutée : Récupérer les utilisateurs par âge et maladie
+  const fetchUsersByAgeAndDisease = async (currentUserBirthDate, currentUserId, currentUserDiseases) => {
+    try {
+      const db = getFirestore(firebaseApp);
+      const usersRef = collection(db, 'users');
+      const querySnapshot = await getDocs(usersRef);
+
+      const users = querySnapshot.docs
+        .map((doc) => ({ ...doc.data(), uid: doc.id }))
+        .filter((user) => {
+          if (user.uid === currentUserId) return false;
+
+          const userAge = calculateAge(user.dateOfBirth);
+          const currentUserAge = calculateAge(currentUserBirthDate);
+          const ageDiff = Math.abs(userAge - currentUserAge);
+
+          const diseasesMatch = (user.diseaseData && currentUserDiseases) ? 
+            (user.diseaseData.cancer && currentUserDiseases.cancer ||
+             user.diseaseData.curedCancer && currentUserDiseases.curedCancer ||
+             user.diseaseData.metastasisCancer && currentUserDiseases.metastasisCancer ||
+             user.diseaseData.rareDisease && currentUserDiseases.rareDisease) : true;
+
+          return ageDiff <= 30 && diseasesMatch;
+        });
+
+      setDuoResults(users);
+    } catch (error) {
+      console.error('Error fetching users by age and disease:', error);
+    }
   };
 
-  const goToMessages = () => {
-    navigation.navigate('Messages'); // Naviguer vers la page MessagesScreen
+  // Récupérer les utilisateurs dans le même pays et ayant la même maladie
+  const fetchUsersInSameCountryAndDisease = async (country, currentUserId, currentUserDiseases) => {
+    try {
+      const db = getFirestore(firebaseApp);
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('country', '==', country));
+
+      const querySnapshot = await getDocs(q);
+      const users = querySnapshot.docs
+        .map((doc) => ({ ...doc.data(), uid: doc.id }))
+        .filter((user) => {
+          if (user.uid === currentUserId) return false;
+
+          const diseasesMatch = (user.diseaseData && currentUserDiseases) ? 
+            (user.diseaseData.cancer && currentUserDiseases.cancer ||
+             user.diseaseData.curedCancer && currentUserDiseases.curedCancer ||
+             user.diseaseData.metastasisCancer && currentUserDiseases.metastasisCancer ||
+             user.diseaseData.rareDisease && currentUserDiseases.rareDisease) : true;
+
+          return user.country === country && diseasesMatch;
+        });
+
+      setDuoResults(users);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
+
+  // Récupérer les utilisateurs ayant la même maladie
+  const fetchUsersWithSameDisease = async (currentUserDiseases, currentUserId) => {
+    try {
+      const db = getFirestore(firebaseApp);
+      const usersRef = collection(db, 'users');
+      const querySnapshot = await getDocs(usersRef);
+
+      const users = querySnapshot.docs
+        .map((doc) => ({ ...doc.data(), uid: doc.id }))
+        .filter((user) => {
+          if (user.uid === currentUserId) return false;
+
+          const diseasesMatch = (user.diseaseData && currentUserDiseases) ? 
+            (user.diseaseData.cancer && currentUserDiseases.cancer ||
+             user.diseaseData.curedCancer && currentUserDiseases.curedCancer ||
+             user.diseaseData.metastasisCancer && currentUserDiseases.metastasisCancer ||
+             user.diseaseData.rareDisease && currentUserDiseases.rareDisease) : true;
+
+          return diseasesMatch;
+        });
+
+      setDuoResults(users);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
+
+  // Récupérer les utilisateurs par âge
+  const fetchUsersByAge = async (currentUserBirthDate, currentUserId) => {
+    try {
+      const db = getFirestore(firebaseApp);
+      const usersRef = collection(db, 'users');
+      const querySnapshot = await getDocs(usersRef);
+
+      const users = querySnapshot.docs
+        .map((doc) => ({ ...doc.data(), uid: doc.id }))
+        .filter((user) => {
+          if (user.uid === currentUserId) return false;
+
+          const userAge = calculateAge(user.dateOfBirth);
+          const currentUserAge = calculateAge(currentUserBirthDate);
+          const ageDiff = Math.abs(userAge - currentUserAge);
+
+          return ageDiff <= 30;
+        });
+
+      setDuoResults(users);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
+
+  // Récupérer les utilisateurs dans le même pays
+  const fetchUsersInSameCountry = async (country, currentUserId, currentUserBirthDate) => {
+    try {
+      const db = getFirestore(firebaseApp);
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('country', '==', country));
+
+      const querySnapshot = await getDocs(q);
+      const users = querySnapshot.docs
+        .map((doc) => ({ ...doc.data(), uid: doc.id }))
+        .filter((user) => {
+          if (user.uid === currentUserId) return false;
+
+          const userAge = calculateAge(user.dateOfBirth);
+          const currentUserAge = calculateAge(currentUserBirthDate);
+          const ageDiff = Math.abs(userAge - currentUserAge);
+
+          return ageDiff <= 30;
+        });
+
+      setDuoResults(users);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
+
+  const renderNoDuoMessage = () => {
+    return (
+      <View style={styles.messageContainer}>
+        <Text style={styles.messageText}>
+          We could not find any duo suggestions based on your preferences.
+        </Text>
+      </View>
+    );
   };
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity>
-          <Icon name="person-circle-outline" size={30} color="#555" /> {/* Icone de profil */}
-        </TouchableOpacity>
+    
+    <ScrollView style={styles.container}>
+      {showMessage ? renderNoDuoMessage() : null}
 
-        {/* Barre de recherche */}
-        <TextInput
-          style={styles.searchInput}
-          placeholder="🔍 Search for a Duo..."
-          value={searchText}
-          onChangeText={(text) => setSearchText(text)} // Mise à jour du texte de recherche
-        />
+      {duoResults.length > 0 ? (
+        duoResults.map((user) => (
+          <View key={user.uid} style={styles.userCard}>
+            <Text style={styles.userNameText}>{user.name}</Text>
+            <Text>Country: {user.country}</Text>
+            <Text>Age: {calculateAge(user.dateOfBirth)}</Text>
+            
+            <View style={[styles.diseaseContainer, { flexDirection: 'row', alignItems: 'center' }]}>
+  <Text>Diseases: </Text>
+  {user.diseaseData && user.diseaseData.cancer && (
+    <Text style={styles.diseaseText}>Cancer, </Text>
+  )}
+  {user.diseaseData && user.diseaseData.curedCancer && (
+    <Text style={styles.diseaseText}>Cured Cancer, </Text>
+  )}
+  {user.diseaseData && user.diseaseData.metastasisCancer && (
+    <Text style={styles.diseaseText}>Metastasis Cancer, </Text>
+  )}
+  {user.diseaseData && user.diseaseData.rareDisease && (
+    <Text style={styles.diseaseText}>Rare Disease</Text>
+  )}
+</View>
 
-        {/* Icône de messagerie */}
-        <TouchableOpacity onPress={goToMessages}>
-          <Icon name="chatbubble-ellipses-outline" size={30} color="#555" />
-        </TouchableOpacity>
-      </View>
 
-      {/* Main Content with ScrollView */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Duo Suggestions</Text>
 
-        {/* Liste des résultats de duos */}
-        {duoResults.map((duo, index) => (
-          <View key={index} style={styles.duoCard}>
-            <Text style={styles.duoName}>{duo.name}</Text>
-            <Text style={styles.duoDetails}>Country: {duo.country}</Text>
-            <Text style={styles.duoDetails}>Disease: {duo.disease}</Text>
-            <Text style={styles.duoDetails}>Age: {duo.age}</Text>
-            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('DuoDone')}>
-              <Text style={styles.buttonText}>Start Duo</Text>
-            </TouchableOpacity>
+            <View style={styles.buttonsContainer}>
+              <TouchableOpacity
+                style={styles.viewProfileButton}
+                onPress={() => navigation.navigate('UserProfile', { userId: user.uid })}
+              >
+                <Text style={styles.viewProfileButtonText}>View Profile</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+  style={styles.chooseAsDuoButton}
+  onPress={async () => {
+    try {
+      // Récupérer l'utilisateur authentifié
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+      
+      if (currentUser) {
+        // L'utilisateur choisi (celui sur lequel on clique)
+        const chosenUserId = user.uid;
+        const chosenUserName = user.name; // Nom de l'utilisateur choisi
+        const chosenUserCountry = user.country; // Pays de l'utilisateur choisi
+        const chosenUserAge = calculateAge(user.dateOfBirth); // Âge de l'utilisateur choisi
+        const chosenUserDiseases = user.diseaseData || {}; // Maladies de l'utilisateur choisi
+
+        // Mettre à jour le champ 'duo' dans le document de l'utilisateur authentifié
+        const db = getFirestore(firebaseApp);
+        const userDoc = doc(db, 'users', currentUser.uid);
+
+        // On met à jour le champ duo dans le document de l'utilisateur authentifié
+        await updateDoc(userDoc, {
+          duo: {
+            duoId: chosenUserId,  // UID de l'utilisateur choisi
+            duoName: chosenUserName,  // Nom de l'utilisateur choisi
+            duoCountry: chosenUserCountry,  // Pays de l'utilisateur choisi
+            duoAge: chosenUserAge,  // Âge de l'utilisateur choisi
+            duoDiseases: chosenUserDiseases,  // Maladies de l'utilisateur choisi
+          },
+        });
+
+        // Naviguer vers la page DuoDone avec les informations du duo
+        navigation.navigate('DuoDone', {
+          userId: chosenUserId,
+          userName: chosenUserName,
+          userCountry: chosenUserCountry,
+          userAge: chosenUserAge,
+          userDiseases: chosenUserDiseases, // Passer les données de maladie
+        });
+      }
+    } catch (error) {
+      console.error('Error updating duo:', error);
+    }
+  }}
+>
+  <Text style={styles.chooseAsDuoButtonText}>Choose as Duo</Text>
+</TouchableOpacity>
+
+
+            </View>
           </View>
-        ))}
-      </ScrollView>
-
-      {/* Footer */}
-      <View style={styles.footer}>
-        {/* Feed */}
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate('Feed')}>
-          <FontAwesome5 name="home" size={20} color="#000" />
-          <Text style={styles.footerText}>Feed</Text>
-        </TouchableOpacity>
-        {/* Duo avec indicateur actif */}
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate('DuoStart')}>
-          <FontAwesome5 name="users" size={20} color="#00ADEF" />
-          <Text style={[styles.footerText, styles.activeFooterText]}>Duo</Text>
-          <View style={styles.activeIndicator} /> {/* Barre active sous Duo */}
-        </TouchableOpacity>
-        {/* Profile */}
-        <TouchableOpacity style={styles.footerItem} onPress={goToProfile}>
-          <FontAwesome5 name="user-circle" size={20} color="#000" />
-          <Text style={styles.footerText}>Profile</Text>
-        </TouchableOpacity>
-        {/* Community */}
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate('Community')}>
-          <FontAwesome5 name="globe" size={20} color="#000" />
-          <Text style={styles.footerText}>Community</Text>
-        </TouchableOpacity>
-        {/* Forum */}
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate('ForumScreen')}>
-          <FontAwesome5 name="comments" size={20} color="#000" />
-          <Text style={styles.footerText}>Forum</Text>
-        </TouchableOpacity>
-        {/* Notifications */}
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate('Notifications')}>
-          <FontAwesome5 name="bell" size={20} color="#000" />
-          <Text style={styles.footerText}>Notifications</Text>
-        </TouchableOpacity>
-        {/* Settings */}
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate('Settings')}>
-          <FontAwesome5 name="cogs" size={20} color="#000" />
-          <Text style={styles.footerText}>Settings</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+        ))
+      ) : (
+        <Text>No users found matching your preferences.</Text>
+      )}
+    </ScrollView>
+    
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    padding: 10,
+  },
+  userCard: {
     backgroundColor: '#fff',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 15,
-    backgroundColor: '#fff',
-  },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    borderColor: '#ddd',
-    borderWidth: 1,
-    borderRadius: 20,
-    paddingLeft: 15,
-    marginHorizontal: 10,
-  },
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 20,
-  },
-  duoCard: {
-    padding: 15,
-    marginBottom: 15,
-    backgroundColor: '#f9f9f9',
+    padding: 10,
+    marginBottom: 10,
     borderRadius: 10,
     shadowColor: '#000',
     shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 5,
+    shadowRadius: 10,
   },
-  duoName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  duoDetails: {
-    fontSize: 16,
-    color: '#555',
-  },
-  button: {
-    backgroundColor: '#00ADEF',
-    paddingVertical: 10,
-    borderRadius: 25,
-    marginTop: 10,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  footer: {
+  buttonsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10, // Rapprocher les boutons
+    marginTop: 10,
+  },
+  viewProfileButton: {
+    backgroundColor: '#D3D3D3',
     paddingVertical: 10,
-    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+    borderRadius: 15, // Bords plus arrondis
   },
-  footerItem: {
-    alignItems: 'center',
+  viewProfileButtonText: {
+    color: 'black',
+    fontWeight: 'bold',  // Texte en gras
   },
-  footerText: {
-    fontSize: 12,
-    color: '#333',
-  },
-  activeFooterText: {
-    fontWeight: 'bold',
-    color: '#00ADEF',
-  },
-  activeIndicator: {
-    width: 30,
-    height: 2,
+  chooseAsDuoButton: {
     backgroundColor: '#00ADEF',
-    marginTop: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 15, // Bords plus arrondis
+  },
+  chooseAsDuoButtonText: {
+    color: 'white',
+    fontWeight: 'bold',  // Texte en gras
+  },
+  messageContainer: {
+    padding: 20,
+    backgroundColor: '#f8d7da',
+    borderRadius: 5,
+    marginTop: 20,
+  },
+  messageText: {
+    color: '#721c24',
+    fontSize: 16,
+  },
+  userNameText: {
+    fontWeight: 'bold',  // Nom en gras
+    fontSize: 18,
   },
 });
 
