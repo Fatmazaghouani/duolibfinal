@@ -103,7 +103,7 @@ const Feed = ({ navigation }) => {
           <FontAwesome5 name="bell" size={20} color="#000" />
           <Text style={styles.bottomText}>Notifications</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('Profile')}>
+        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('ProfileScreen')}>
           <FontAwesome5 name="user" size={20} color="#000" />
           <Text style={styles.bottomText}>Profile</Text>
         </TouchableOpacity>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Starting from './frontend/screens/Starting/Starting';
+import ChatbotScreen from './frontend/screens/Starting/ChatbotScreen';
 import OurPhilosophy from './frontend/screens/Starting/Our philosophy';
 import Transparency from './frontend/screens/Starting/transparency';
 import AboutUsScreen from './frontend/screens/Starting/about us';
@@ -50,6 +51,8 @@ import DuoPreferences from "./frontend/screens/Duo/DuoPreferences";
 import DuoSuggestions from "./frontend/screens/Duo/DuoSuggestions";
 import DuoDone from "./frontend/screens/Duo/DuoDone";
 import DuoChange from "./frontend/screens/Duo/DuoChange";
+import ProfileScreen from "./frontend/screens/Profile/ProfileScreen";
+
 
 const Stack = createStackNavigator();
 
@@ -107,6 +110,9 @@ const App = () => {
         <Stack.Screen name="DuoSuggestions" component={DuoSuggestions} />
         <Stack.Screen name="DuoDone" component={DuoDone} />
         <Stack.Screen name="DuoChange" component={DuoChange} />
+        <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+        <Stack.Screen name="ChatbotScreen" component={ChatbotScreen} />
+
        
       </Stack.Navigator>
     </NavigationContainer>
