@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, Button, TextInput } from 'react-native'; 
 import { db, auth } from '../../../backend/firebaseConfig';
-import { collection, onSnapshot } from '@firebase/firestore';
+import { collection, onSnapshot, query, where } from '@firebase/firestore';
 import { signOut } from '@firebase/auth';
 import { FontAwesome5 } from '@expo/vector-icons'; // L'icône des autres boutons, reste inchangé
 
@@ -28,6 +28,28 @@ const Feed = ({ navigation }) => {
       console.error('Sign Out error:', error.message);
     }
   };
+  useEffect(() => {
+  const messagesQuery = query(
+    collection(db, 'messages'), 
+    where('receiverId', '==', currentUser.uid),  // Filtrer les messages destinés à l'utilisateur connecté
+    where('isRead', '==', false)  // Filtrer ceux qui ne sont pas lus
+  );
+
+  const unsubscribeMessages = onSnapshot(messagesQuery, (snapshot) => {
+    // Récupérer les IDs des utilisateurs avec des messages non lus
+    const unreadUserIds = new Set();
+
+    snapshot.docs.forEach((doc) => {
+      const senderId = doc.data().senderId; // ID de l'expéditeur
+      unreadUserIds.add(senderId); // Ajouter l'ID de l'expéditeur
+    });
+
+    setUnreadDiscussionsCount(unreadUserIds.size); // Le nombre de discussions distinctes avec des messages non lus
+  });
+
+  return () => unsubscribeMessages();
+}, []);
+
 
   // Fonction pour générer une couleur aléatoire
   const getRandomColor = () => {
@@ -38,6 +60,9 @@ const Feed = ({ navigation }) => {
     }
     return color;
   };
+  const [unreadDiscussionsCount, setUnreadDiscussionsCount] = useState(0);
+  
+
 
   return (
     <View style={styles.container}>
@@ -59,8 +84,16 @@ const Feed = ({ navigation }) => {
 
         {/* Icône de messagerie */}
         <TouchableOpacity onPress={() => navigation.navigate('Messages')}>
-          <FontAwesome5 name="comments" size={30} color="#555" />
-        </TouchableOpacity>
+  <View style={styles.messageIconContainer}>
+    <FontAwesome5 name="comment-dots" size={20} color="#000" style={styles.messageIcon} />
+    {unreadDiscussionsCount > 0 && (
+      <View style={styles.badge}>
+        <Text style={styles.badgeText}>{unreadDiscussionsCount}</Text>
+      </View>
+    )}
+  </View>
+</TouchableOpacity>
+
       </View>
 
       <Text style={styles.friendsSuggestion}>Friends suggestion</Text>
@@ -85,8 +118,7 @@ const Feed = ({ navigation }) => {
         )}
       />
 
-      {/* Bouton de déconnexion */}
-      <Button title="Log Out" onPress={handleSignOut} color="#e74c3c" />
+     
 
       {/* Barre de navigation en bas */}
       <View style={styles.bottomBar}>
@@ -204,6 +236,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
   },
+  badge: {
+  position: 'absolute',
+  top: -5,
+  right: -5,
+  backgroundColor: 'red',
+  borderRadius: 10,
+  width: 18,
+  height: 18,
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+badgeText: {
+  color: '#fff',
+  fontSize: 12,
+  fontWeight: 'bold',
+},
 });
 
 export default Feed;
