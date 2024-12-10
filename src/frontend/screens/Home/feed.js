@@ -3,7 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, Button, Text
 import { db, auth } from '../../../backend/firebaseConfig';
 import { collection, onSnapshot } from '@firebase/firestore';
 import { signOut } from '@firebase/auth';
-import { FontAwesome5 } from '@expo/vector-icons'; // Importation des icônes
+import { FontAwesome5 } from '@expo/vector-icons'; // L'icône des autres boutons, reste inchangé
 
 const Feed = ({ navigation }) => {
   const [users, setUsers] = useState([]);
@@ -41,19 +41,26 @@ const Feed = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Barre de recherche avec le logo et l'icône des messages */}
-      <View style={styles.searchBar}>
-        <Image source={require('../../images/smalllogo.png')} style={styles.logo} />
-        <FontAwesome5 name="search" size={20} color="#000" style={styles.searchIcon} /> {/* Icône loupe */}
+      {/* Barre de recherche avec l'image smalllogo.png et l'icône des messages */}
+      <View style={styles.header}>
+        <TouchableOpacity>
+          <Image 
+            source={require('../../images/smalllogo.png')} // Chemin vers ton image
+            style={styles.logo} 
+          />
+        </TouchableOpacity>
+
+        {/* Barre de recherche */}
         <TextInput
           style={styles.searchInput}
-          placeholder="Search for something here"
+          placeholder="🔍 Search for something here..."
           placeholderTextColor="#000"
         />
-        <TouchableOpacity onPress={() => navigation.navigate('Messages')}>
-  <Image source={require('../../images/Message.png')} style={styles.messageIcon} />
-</TouchableOpacity>
 
+        {/* Icône de messagerie */}
+        <TouchableOpacity onPress={() => navigation.navigate('Messages')}>
+          <FontAwesome5 name="comments" size={30} color="#555" />
+        </TouchableOpacity>
       </View>
 
       <Text style={styles.friendsSuggestion}>Friends suggestion</Text>
@@ -111,7 +118,6 @@ const Feed = ({ navigation }) => {
           <FontAwesome5 name="cogs" size={20} color="#000" />
           <Text style={styles.bottomText}>Settings</Text>
         </TouchableOpacity>
-        
       </View>
     </View>
   );
@@ -123,40 +129,28 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#fff',  // Fond blanc partout
   },
-  searchBar: {
+  header: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'flex-start',  // Alignement à gauche
-    marginTop: 10, // Placer la barre de recherche tout en haut
+    height: 50,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    marginBottom: 10,
     paddingHorizontal: 10,
-    marginBottom: 20, // Ajouter un peu d'espace
   },
   logo: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 1, // Espacement entre logo et champ
-  },
-  searchIcon: {
-    marginLeft: 10, // Espacement entre logo et icône de la loupe
+    width: 30,
+    height: 30, // Taille de l'image
   },
   searchInput: {
-    fontSize: 14,
-    lineHeight: 18,
-    fontFamily: "Roboto-Regular",
-    color: "#000",  // Texte en noir pour plus de lisibilité
-    width: 250,  // Largeur du champ de texte
-    height: 40,  // Hauteur du champ
+    flex: 1,
+    height: 40,
+    borderColor: '#ddd',
     borderWidth: 1,
-    borderColor: '#ccc',  // Bordure grise pour le champ
-    borderRadius: 5,  // Arrondir les bords du champ
-    paddingLeft: 10,  // Ajouter du padding à gauche
-  },
-  messageIcon: {
-    width: 20,
-    height: 20,
-    marginLeft: 10,  // Espacement entre champ et icône
-    tintColor: "#000", // Icône en noir
+    borderRadius: 20,
+    paddingLeft: 15,
+    marginHorizontal: 10,
   },
   friendsSuggestion: {
     fontSize: 16,
@@ -169,7 +163,7 @@ const styles = StyleSheet.create({
   },
   userCard: {
     alignItems: 'center',
-    marginRight: 0.2,  // Réduire la marge entre les cartes d'utilisateurs
+    marginRight: 10,
     padding: 10,
     borderRadius: 10,
   },
@@ -179,12 +173,12 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 1,  // Espacement plus faible entre les bulles
+    marginBottom: 1,
   },
   bubbleText: {
     fontSize: 18,
     color: '#fff',
-    textTransform: 'uppercase',  // Majuscule
+    textTransform: 'uppercase',
     textAlign: 'center',
   },
   userName: {
@@ -192,23 +186,23 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontWeight: '500',
     fontFamily: 'Roboto-Medium',
-    color: '#000',  // Texte noir
+    color: '#000',
     textAlign: 'center',
   },
   bottomBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 20,  // Augmenter la hauteur de la barre
-    backgroundColor: '#fff', // Fond blanc pour la barre de bas
+    paddingVertical: 20,
+    backgroundColor: '#fff',
     borderTopWidth: 1,
-    borderTopColor: '#ccc',  // Bordure grise en haut de la barre
+    borderTopColor: '#ccc',
   },
   bottomIcon: {
     alignItems: 'center',
   },
   bottomText: {
-    color: '#000',  // Texte noir pour les icônes
-    fontSize: 12,  // Taille de texte plus petite
+    fontSize: 12,
+    textAlign: 'center',
   },
 });
 
