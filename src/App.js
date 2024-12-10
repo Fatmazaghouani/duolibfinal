@@ -52,6 +52,9 @@ import DuoSuggestions from "./frontend/screens/Duo/DuoSuggestions";
 import DuoDone from "./frontend/screens/Duo/DuoDone";
 import DuoChange from "./frontend/screens/Duo/DuoChange";
 import ProfileScreen from "./frontend/screens/Profile/ProfileScreen";
+import EditPro from "./frontend/screens/Profile/EditPro";
+
+
 
 
 const Stack = createStackNavigator();
@@ -112,6 +115,7 @@ const App = () => {
         <Stack.Screen name="DuoChange" component={DuoChange} />
         <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
         <Stack.Screen name="ChatbotScreen" component={ChatbotScreen} />
+        <Stack.Screen name="EditPro" component={EditPro} />
 
        
       </Stack.Navigator>

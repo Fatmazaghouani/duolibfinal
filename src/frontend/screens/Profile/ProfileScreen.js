@@ -19,6 +19,8 @@ import { format, parse } from 'date-fns'; // Import de date-fns
 import { FontAwesome } from '@expo/vector-icons';
 
 const ProfileScreen = () => {
+  const [showIntro, setShowIntro] = useState(true); // Gestion de l'affichage de la partie INTRO
+  const [showMaladie, setShowMaladie] = useState(false);
   const [text, setText] = useState('');
   const [message, setMessage] = useState('');
   const [posts, setPosts] = useState([]);
@@ -55,6 +57,7 @@ const ProfileScreen = () => {
             diseases: Object.keys(userData.diseaseData).filter((key) => userData.diseaseData[key] === true),
             gender: userData.gender || 'Non renseigné',
             duo: userData.duo || null, // Si le champ 'duo' n'existe pas, on met 'null'
+            bio: userData.bio || 'Aucune description renseignée',  
           });
         } else {
           console.log('Utilisateur non trouvé !');
@@ -129,6 +132,14 @@ useEffect(() => {
   const handleFeeling = (feeling) => setFeeling(feeling);
 
   const firstLetter = userEmail ? userEmail.charAt(0).toUpperCase() : 'U';
+  const handleNext = () => {
+    setShowIntro(false);
+    setShowMaladie(true);
+  };
+
+  const handleBack = () => {
+    setShowIntro(true);
+    setShowMaladie(false); };
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -170,49 +181,71 @@ useEffect(() => {
 <View style={styles.bioContainer}>
   <View style={styles.nameContainer}>
     <Text style={styles.nameText}>{userName}</Text>
-    <Text style={styles.descriptionText}>Description :</Text>
+    <Text style={styles.bioText}>{userBio.bio}</Text>
+
   </View>
 {/* Nouveau texte "INTRO" */}
-  <Text style={styles.introText}>INTRO</Text>
-  
+  <View style={{ flex: 1, backgroundColor: '#fff', padding: 20 }}>
+      {/* Partie INTRO */}
+      {showIntro && (
+        <>
+          <Text style={styles.introText}>INTRO</Text>
 
-  {/* Affichage des informations avec des icônes */}
-  <View style={styles.bioItem}>
-    <FontAwesome5 name="map-marker-alt" size={20} color="#000" />
-    <Text style={styles.bioText}> {userBio.country || 'Non renseigné'}</Text>
-  </View>
+          {/* Affichage des informations avec des icônes */}
+          <View style={styles.bioItem}>
+            <FontAwesome5 name="map-marker-alt" size={20} color="#000" />
+            <Text style={styles.bioText}> {userBio.country || 'Non renseigné'}</Text>
+          </View>
 
-  <View style={styles.bioItem}>
-    <FontAwesome5 name="venus-mars" size={20} color="#000" />
-    <Text style={styles.bioText}> {userBio.gender || 'Non renseigné'}</Text>
-  </View>
+          <View style={styles.bioItem}>
+            <FontAwesome5 name="venus-mars" size={20} color="#000" />
+            <Text style={styles.bioText}> {userBio.gender || 'Non renseigné'}</Text>
+          </View>
 
-  <View style={styles.bioItem}>
-    <FontAwesome5 name="calendar-alt" size={20} color="#000" />
-    <Text style={styles.bioText}> {userBio.dateOfBirth || 'Non renseignée'}</Text>
-  </View>
+          <View style={styles.bioItem}>
+            <FontAwesome5 name="calendar-alt" size={20} color="#000" />
+            <Text style={styles.bioText}> {userBio.dateOfBirth || 'Non renseignée'}</Text>
+          </View>
 
-  {userBio.duo && userBio.duo !== '' ? (
-    <View style={styles.bioItem}>
-      <FontAwesome5 name="users" size={20} color="#000" />
-      <Text style={styles.bioText}>With a Duo</Text>
+          {userBio.duo && userBio.duo !== '' ? (
+            <View style={styles.bioItem}>
+              <FontAwesome5 name="users" size={20} color="#000" />
+              <Text style={styles.bioText}>With a Duo</Text>
+            </View>
+          ) : null}
+
+          <View style={styles.bioItem}>
+            <FontAwesome5 name="heartbeat" size={20} color="#000" />
+            <Text style={styles.bioText}>
+              {userBio.diseases.length > 0 ? userBio.diseases.join(', ') : 'Aucune maladie enregistrée'}
+            </Text>
+          </View>
+        </>
+      )}
+
+      {/* Partie MALADIE */}
+      {showMaladie && (
+        <View style={styles.maladieSection}>
+          <Text style={styles.maladieText}>Maladie</Text>
+        </View>
+      )}
+
+      {/* Boutons */}
+      <View style={styles.buttonContainer}>
+        {showIntro ? (
+          <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+            <Text style={styles.nextButtonText}>Next</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.nextButton} onPress={handleBack}>
+            <Text style={styles.nextButtonText}>Back</Text>
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('EditPro')}>
+          <Text style={styles.editButtonText}>Edit details</Text>
+        </TouchableOpacity>
+      </View>
     </View>
-  ) : null}
-
-  <View style={styles.bioItem}>
-    <FontAwesome5 name="heartbeat" size={20} color="#000" />
-    <Text style={styles.bioText}>
-      {userBio.diseases.length > 0 ? userBio.diseases.join(', ') : 'Aucune maladie enregistrée'}
-    </Text>
-  </View>
-  <View style={styles.buttonContainer}>
-    <TouchableOpacity style={styles.nextButton}>
-      <Text style={styles.nextButtonText}>Next</Text>
-    </TouchableOpacity>
-    <TouchableOpacity style={styles.editButton}>
-      <Text style={styles.editButtonText}>Edit details</Text>
-    </TouchableOpacity>
-  </View>
 </View>
 
 
