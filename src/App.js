@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+
 import Starting from './frontend/screens/Starting/Starting';
 import ChatbotScreen from './frontend/screens/Starting/ChatbotScreen';
 import OurPhilosophy from './frontend/screens/Starting/Our philosophy';
@@ -54,6 +55,7 @@ import DuoChange from "./frontend/screens/Duo/DuoChange";
 import ProfileScreen from "./frontend/screens/Profile/ProfileScreen";
 import EditPro from "./frontend/screens/Profile/EditPro";
 import MyCommunityScreen from "./frontend/screens/Community/MyCommunityScreen";
+
 
 
 
@@ -119,6 +121,8 @@ const App = () => {
         <Stack.Screen name="ChatbotScreen" component={ChatbotScreen} />
         <Stack.Screen name="EditPro" component={EditPro} />
         <Stack.Screen name="MyCommunityScreen" component={MyCommunityScreen} />
+        
+
 
        
       </Stack.Navigator>

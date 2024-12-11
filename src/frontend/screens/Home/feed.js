@@ -1,63 +1,157 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ScrollView, StyleSheet, Image, TextInput } from 'react-native'; 
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, TextInput } from 'react-native';
 import { db, auth } from '../../../backend/firebaseConfig';
-import { doc, getDoc, addDoc, collection, query, orderBy, where, onSnapshot } from 'firebase/firestore';
-import { FontAwesome5 } from '@expo/vector-icons'; 
-import { FontAwesome } from '@expo/vector-icons';
+import { doc, getDoc, addDoc, collection, query, onSnapshot, where } from 'firebase/firestore';
+import { FontAwesome5 } from '@expo/vector-icons';
+import BottomBar from '../BottomBar';
+
+
+// Function to format the date in text (e.g., "2 hours ago")
+const formatDate = (timestamp) => {
+  const now = new Date();
+  const timeDiff = now - timestamp.toDate(); // Convert Firestore Timestamp to JavaScript date
+  const seconds = Math.floor(timeDiff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (days > 0) {
+    return `${days} days ago`;
+  } else if (hours > 0) {
+    return `${hours} hours ago`;
+  } else if (minutes > 0) {
+    return `${minutes} minutes ago`;
+  } else {
+    return `${seconds} secondes ago`;
+  }
+};
 
 const Feed = ({ navigation }) => {
-  const [userName, setUserName] = useState(''); // Nouveau state pour stocker le nom de l'utilisateur
+  const [userName, setUserName] = useState('');
   const [users, setUsers] = useState([]);
-  const userId = auth.currentUser?.uid;
-  const [posts, setPosts] = useState([]); // Nouveau state pour les posts
-  const currentUser = auth.currentUser; // Utilisateur actuellement connecté
-  const [unreadDiscussionsCount, setUnreadDiscussionsCount] = useState(0); // Compteur de messages non lus
-  
+  const [posts, setPosts] = useState([]);
+  const [mappedPosts, setMappedPosts] = useState([]);
+  const [unreadDiscussionsCount, setUnreadDiscussionsCount] = useState(0);
+  const [newPost, setNewPost] = useState(''); // To hold the new post text
+  const currentUser = auth.currentUser;
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [textInputHeight, setTextInputHeight] = useState(40);
+
+  // Fetch the current user's information
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
+    const fetchCurrentUser = async () => {
+      if (currentUser) {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setUserName(`${userData.name || 'Anonymous'} ${userData.surname || ''}`.trim());
+        } else {
+          setUserName(currentUser.displayName || 'Anonymous');
+        }
+      }
+    };
+
+    fetchCurrentUser();
+  }, [currentUser]);
+
+  // Fetch all users (excluding the current user)
+  useEffect(() => {
+    const unsubscribeUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
       const usersData = snapshot.docs
-        .map((doc) => ({ ...doc.data(), _id: doc.id })) // Inclure _id pour chaque utilisateur
-        .filter((user) => user._id !== currentUser.uid); // Exclure l'utilisateur connecté
+        .map((doc) => ({ ...doc.data(), _id: doc.id }))
+        .filter((user) => user._id !== currentUser?.uid);
       setUsers(usersData);
     });
 
-    return () => unsubscribe();
-  }, []);
+    return () => unsubscribeUsers();
+  }, [currentUser]);
 
+  // Fetch posts and enrich with user data
   useEffect(() => {
-    if (userId) {
-      const q = query(collection(db, 'posts'), orderBy('timestamp', 'desc'));
+    const fetchPosts = async () => {
+      const postsCollection = collection(db, 'posts');
+      const postsQuery = query(postsCollection);
 
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        setPosts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      const unsubscribePosts = onSnapshot(postsQuery, (snapshot) => {
+        const postsData = snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+
+        const userMap = {};
+        users.forEach((user) => {
+          userMap[user._id] = `${user.name || 'Anonymous'} ${user.surname || ''}`.trim();
+        });
+
+        if (currentUser) {
+          userMap[currentUser.uid] = userName; // Use the current user's name
+        }
+
+        const enrichedPosts = postsData.map((post) => ({
+          ...post,
+          authorName: userMap[post.userId] || 'Anonymous',
+          timeAgo: formatDate(post.timestamp), // Add formatted date
+        }));
+
+        // Sort posts by timestamp in descending order (newest first)
+        const sortedPosts = enrichedPosts.sort((a, b) => b.timestamp.seconds - a.timestamp.seconds);
+
+        setPosts(postsData);
+        setMappedPosts(sortedPosts); // Set sorted posts
       });
 
-      return unsubscribe; // Cleanup
-    }
-  }, [userId]);
+      return () => unsubscribePosts();
+    };
 
+    fetchPosts();
+  }, [users, currentUser, userName]);
+
+  // Fetch unread messages count
   useEffect(() => {
     const messagesQuery = query(
       collection(db, 'messages'),
-      where('receiverId', '==', currentUser.uid),  // Filtrer les messages destinés à l'utilisateur connecté
-      where('isRead', '==', false)  // Filtrer ceux qui ne sont pas lus
+      where('receiverId', '==', currentUser?.uid),
+      where('isRead', '==', false)
     );
 
     const unsubscribeMessages = onSnapshot(messagesQuery, (snapshot) => {
       const unreadUserIds = new Set();
 
       snapshot.docs.forEach((doc) => {
-        const senderId = doc.data().senderId; // ID de l'expéditeur
-        unreadUserIds.add(senderId); // Ajouter l'ID de l'expéditeur
+        const senderId = doc.data().senderId;
+        unreadUserIds.add(senderId);
       });
 
-      setUnreadDiscussionsCount(unreadUserIds.size); // Le nombre de discussions distinctes avec des messages non lus
+      setUnreadDiscussionsCount(unreadUserIds.size);
     });
 
     return () => unsubscribeMessages();
-  }, []);
+  }, [currentUser]);
 
-  // Fonction pour générer une couleur aléatoire
+  const handlePost = async () => {
+  if (newPost.trim()) {
+    try {
+      const userNameToUse = currentUser?.displayName || 'Anonymous';
+      
+      await addDoc(collection(db, 'posts'), {
+        message: newPost,
+        feeling: '', // Feeling can be added later if needed
+        likes: 0,
+        timestamp: new Date(),
+        userId: currentUser?.uid,
+        authorName: userNameToUse,
+      });
+      setToastMessage('Your post was uploaded successfully!'); 
+      setToastVisible(true);        
+      setNewPost(''); // Clear the input after posting
+      setTimeout(() => setToastVisible(false), 3000);
+      setTextInputHeight(40);
+      console.log('Post added successfully!');
+    } catch (error) {
+      console.error('Error adding post:', error);
+    }
+  }
+};
+
+
   const getRandomColor = () => {
     const letters = '0123456789ABCDEF';
     let color = '#';
@@ -67,55 +161,17 @@ const Feed = ({ navigation }) => {
     return color;
   };
 
-  const handlePost = async () => {
-    if (text.trim()) {
-      try {
-        // Ajouter le message à Firestore
-        await addDoc(collection(db, 'posts'), {
-          message: text,
-          feeling,
-          likes: 0,
-          timestamp: new Date(),
-          userId: userId,
-          email: userEmail || 'Anonymous',
-        });
-
-        // Mettre à jour l'état des posts après avoir ajouté un message
-        const postsQuery = query(collection(db, 'posts'), orderBy('timestamp', 'desc'));
-        const snapshot = await getDocs(postsQuery);
-        const postsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setPosts(postsData);
-
-        setMessage('Message ajouté avec succès !');
-        setText('');
-        setFeeling(null);
-        setImageUri(null);
-        setTimeout(() => setMessage(''), 3000);
-      } catch (error) {
-        setMessage('Erreur : ' + error.message);
-      }
-    }
-  };
-
   return (
     <View style={styles.container}>
-      {/* Barre de recherche avec l'image smalllogo.png et l'icône des messages */}
       <View style={styles.header}>
         <TouchableOpacity>
-          <Image 
-            source={require('../../images/smalllogo.png')} // Chemin vers ton image
-            style={styles.logo} 
-          />
+          <Image source={require('../../images/smalllogo.png')} style={styles.logo} />
         </TouchableOpacity>
-
-        {/* Barre de recherche */}
         <TextInput
           style={styles.searchInput}
           placeholder="🔍 Search for something here..."
           placeholderTextColor="#000"
         />
-
-        {/* Icône de messagerie */}
         <TouchableOpacity onPress={() => navigation.navigate('Messages')}>
           <View style={styles.messageIconContainer}>
             <FontAwesome5 name="comment-dots" size={20} color="#000" style={styles.messageIcon} />
@@ -127,72 +183,99 @@ const Feed = ({ navigation }) => {
           </View>
         </TouchableOpacity>
       </View>
-
-      <Text style={styles.friendsSuggestion}>Friends suggestion</Text>
-
-      {/* Liste des utilisateurs */}
-      <FlatList
-        data={users}
-        horizontal
-        keyExtractor={(item) => item._id}  // Utilisation de _id comme clé unique
-        renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => navigation.navigate('Chat', { user: item })}>
-            <View style={styles.userCard}>
-              {/* Bulle colorée avec la première lettre de l'utilisateur */}
-              <View style={[styles.bubble, { backgroundColor: getRandomColor() }]}>
-                <Text style={styles.bubbleText}>
-                  {item.name ? item.name.charAt(0).toUpperCase() : 'A'}  {/* Majuscule et première lettre */}
-                </Text>
+      
+      <View style={styles.friendsSuggestionContainer}>
+        <Text style={styles.friendsSuggestion}>Friends suggestion</Text>
+        <FlatList
+          data={users}
+          horizontal
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => (
+            <TouchableOpacity onPress={() => navigation.navigate('Chat', { user: item })}>
+              <View style={styles.userCard}>
+                <View style={[styles.bubble, { backgroundColor: getRandomColor() }]} >
+                  <Text style={styles.bubbleText}>
+                    {item.name ? item.name.charAt(0).toUpperCase() : 'A'}
+                  </Text>
+                </View>
+                <Text style={styles.userName}>{item.name || 'Unnamed User'}</Text>
               </View>
-              <Text style={styles.userName}>{item.name || 'Unnamed User'}</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-      />
+            </TouchableOpacity>
+          )}
+        />
+      </View>
 
-      {/* Liste des posts */}
+      <View style={styles.line} />
+
+      <View style={styles.postSection}>
+        <TextInput
+  style={[styles.postInput, { height: textInputHeight }]} // Dynamically adjust height
+  placeholder="What’s happening?"
+  value={newPost}
+  onChangeText={setNewPost}
+  multiline
+  onContentSizeChange={(contentWidth, contentHeight) => {
+    // Adjust height based on content size
+    setTextInputHeight(contentHeight > 40 ? contentHeight : 40); // Minimum height is 40
+  }}
+/>
+
+
+        <TouchableOpacity style={styles.postButton} onPress={handlePost}>
+          <Text style={styles.postButtonText}>Post</Text>
+        </TouchableOpacity>
+
+        <View style={styles.postExtras}>
+          <TouchableOpacity style={styles.iconContainer}>
+            <FontAwesome5 name="image" size={20} color="#000" />
+            <Text style={styles.iconText}>Photo</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.iconContainer}>
+            <FontAwesome5 name="smile" size={20} color="#000" />
+            <Text style={styles.iconText}>Feeling</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      {toastVisible && (
+        <View style={styles.toast}>
+          <Text style={styles.toastText}>{toastMessage}</Text>
+        </View>
+      )}
+
       <FlatList
-        data={posts}
-        keyExtractor={(item) => item.id}  // Utilisation de 'id' comme clé unique
+        data={mappedPosts}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.postCard}>
-            <Text style={styles.postAuthor}>{item.authorName || 'Anonymous'}</Text>
-            <Text style={styles.postContent}>{item.message}</Text> {/* Assure-toi d'utiliser le bon champ */}
+            <Text style={styles.postAuthor}>{item.authorName}</Text>
+            <Text style={styles.postDate}>{item.timeAgo}</Text>
+            <Text style={styles.postContent}>{item.message}</Text>
+
+            {/* Post Actions */}
+            <View style={styles.postActions}>
+              <TouchableOpacity style={styles.actionItem}>
+                <FontAwesome5 name="thumbs-up" size={24} color="#377DFF" />
+                <Text style={styles.iconLabel}>Like</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionItem}>
+                <FontAwesome5 name="share" size={24} color="#377DFF" />
+                <Text style={styles.iconLabel}>Share</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionItem}>
+                <FontAwesome5 name="comment" size={24} color="#377DFF" />
+                <Text style={styles.iconLabel}>Comment</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionItem}>
+                <FontAwesome5 name="paper-plane" size={24} color="#377DFF" />
+                <Text style={styles.iconLabel}>Send</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       />
 
-      {/* Barre de navigation en bas */}
-      <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('Feed')}>
-          <FontAwesome5 name="home" size={20} color="#000" />
-          <Text style={styles.bottomText}>Feed</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('DuoStart')}>
-          <FontAwesome5 name="users" size={20} color="#000" />
-          <Text style={styles.bottomText}>Duo</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('MyCommunityScreen')}>
-          <FontAwesome5 name="globe" size={20} color="#000" />
-          <Text style={styles.bottomText}>Community</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('ForumScreen')}>
-          <FontAwesome5 name="comments" size={20} color="#000" />
-          <Text style={styles.bottomText}>Forum</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('Notifications')}>
-          <FontAwesome5 name="bell" size={20} color="#000" />
-          <Text style={styles.bottomText}>Notifications</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('ProfileScreen')}>
-          <FontAwesome5 name="user" size={20} color="#000" />
-          <Text style={styles.bottomText}>Profile</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('Settings')}>
-          <FontAwesome5 name="cogs" size={20} color="#000" />
-          <Text style={styles.bottomText}>Settings</Text>
-        </TouchableOpacity>
-      </View>
+      <BottomBar />
     </View>
   );
 };
@@ -200,112 +283,168 @@ const Feed = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#fff',  // Fond blanc partout
+    backgroundColor: '#fff',
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    height: 50,
+    padding: 15,
+    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-    marginBottom: 10,
-    paddingHorizontal: 10,
+    borderColor: '#fff',
   },
   logo: {
     width: 30,
-    height: 30, // Taille de l'image
+    height: 30,
+    marginRight: 15,
   },
   searchInput: {
     flex: 1,
-    height: 40,
-    borderColor: '#ddd',
-    borderWidth: 1,
+    backgroundColor: '#ddd',
     borderRadius: 20,
-    paddingLeft: 10,
-    marginHorizontal: 10,
+    paddingLeft: 15,
+    height: 40,
+    fontSize: 16,
+    color: '#000',
   },
   messageIconContainer: {
     position: 'relative',
   },
   messageIcon: {
-    marginLeft: 10,
+    marginLeft: 15,
+    fontSize: 30,
   },
   badge: {
     position: 'absolute',
     top: 0,
     right: 0,
     backgroundColor: 'red',
-    borderRadius: 10,
-    width: 18,
-    height: 18,
+    borderRadius: 50,
+    padding: 3,
+    minWidth: 20,
+    minHeight: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
   badgeText: {
-    color: 'white',
     fontSize: 12,
-    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+  },
+  friendsSuggestionContainer: {
+    marginTop: 1,
+    paddingLeft: 15,
   },
   friendsSuggestion: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginVertical: 10,
-    color: '#333',
+    marginBottom: 5,
   },
   userCard: {
-    alignItems: 'center',
     marginRight: 15,
+    alignItems: 'center',
   },
   bubble: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
   },
   bubbleText: {
-    color: 'white',
+    color: '#fff',
     fontWeight: 'bold',
-    fontSize: 18,
   },
   userName: {
     marginTop: 5,
     fontSize: 14,
-    color: '#333',
+    fontWeight: 'bold',
+  },
+  line: {
+    height: 1,
+    backgroundColor: '#ccc',
+    marginVertical: 5,
+  },
+  postSection: {
+    paddingHorizontal: 15,
+    paddingTop: 1,
+  },
+   postInput: {
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 10,
+    fontSize: 16,
+    textAlignVertical: 'top', // Align text at the top
+  },
+  postButton: {
+    backgroundColor: '#377DFF',
+    paddingVertical: 10,
+    borderRadius: 20,
+    alignItems: 'center',
+  },
+  postButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  postExtras: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  iconContainer: {
+    alignItems: 'center',
+  },
+  iconText: {
+    fontSize: 12,
+    marginTop: 5,
   },
   postCard: {
-    backgroundColor: '#f8f8f8',
     padding: 15,
-    marginVertical: 5,
-    borderRadius: 8,
-    elevation: 2,
+    borderBottomWidth: 1,
+    borderColor: '#ccc',
   },
   postAuthor: {
     fontWeight: 'bold',
-    marginBottom: 5,
+    fontSize: 16,
+  },
+  postDate: {
+    fontSize: 12,
+    color: '#777',
+    marginVertical: 5,
   },
   postContent: {
-    fontSize: 14,
-    color: '#555',
+    fontSize: 16,
+    marginBottom: 10,
   },
-  bottomBar: {
+  postActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    height: 60,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#ddd',
-    paddingHorizontal: 15,
   },
-  bottomIcon: {
+  actionItem: {
     alignItems: 'center',
+    flexDirection: 'row',
   },
-  bottomText: {
+  iconLabel: {
+    marginLeft: 5,
     fontSize: 12,
-    color: '#000',
+  },
+  toast: {
+    position: 'absolute',
+    top: 50,
+    left: '10%',
+    right: '10%',
+    backgroundColor: '#28a745',
+    padding: 10,
+    borderRadius: 8,
+    zIndex: 1000,
+  },
+  toastText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontSize: 16,
   },
 });
 

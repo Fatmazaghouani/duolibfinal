@@ -4,11 +4,11 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Assurez-
 
 const SettingsScreen = ({ navigation }) => {
   const settingsOptions = [
-    { icon: 'account', label: 'Edit Profile', onPress: () => navigation.navigate('Edit Profile') },
+    { icon: 'account', label: 'Edit Profile', onPress: () => navigation.navigate('EditPro') },
     { icon: 'translate', label: 'Language', onPress: () => navigation.navigate('Language') },
     { icon: 'block-helper', label: 'Blocking', onPress: () => navigation.navigate('Blocking') },
     { icon: 'bell-outline', label: 'Notification', onPress: () => navigation.navigate('Notification') },
-    { icon: 'shield-lock-outline', label: 'Password & Security', onPress: () => navigation.navigate('Password & Security') },
+    { icon: 'shield-lock-outline', label: 'Password & Security', onPress: () => navigation.navigate('PasswordReset') },
     { icon: 'history', label: 'Activity Log', onPress: () => navigation.navigate('Activity Log') },
     { icon: 'eye-outline', label: 'Viewing & Sharing', onPress: () => navigation.navigate('Viewing and Sharing') },
     { icon: 'help-circle-outline', label: 'Help', onPress: () => navigation.navigate('Help') },

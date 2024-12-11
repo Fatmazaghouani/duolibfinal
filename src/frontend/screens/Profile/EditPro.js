@@ -4,6 +4,8 @@ import { auth, db } from '../../../backend/firebaseConfig';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import BottomBar from '../BottomBar';
+
 
 const EditPro = () => {
   const [name, setName] = useState('');
@@ -134,8 +136,13 @@ const EditPro = () => {
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
         <Text style={styles.saveButtonText}>Save</Text>
       </TouchableOpacity>
+      
     </ScrollView>
+    
+    
   );
+  
+
 };
 
 const styles = StyleSheet.create({

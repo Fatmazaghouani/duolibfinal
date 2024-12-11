@@ -303,6 +303,7 @@ const styles = StyleSheet.create({
     fontSize: 14, // Réduit la taille du texte pour occuper moins d'espace
     color: '#333',
     marginVertical: 5,
+    fontWeight: 'bold',
   },
   messageContainer: {
     marginBottom: 18,

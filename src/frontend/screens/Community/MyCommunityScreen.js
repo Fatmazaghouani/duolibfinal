@@ -137,7 +137,9 @@ const MyCommunityScreen = () => {
     return (
       <View style={styles.userCard}>
         <View style={styles.avatarContainer}>
-          <Text style={styles.avatarText}>{item.name.charAt(0)}</Text>
+          <Text style={styles.avatarText}>
+  {item.name ? item.name.charAt(0) : '?'}
+</Text>
         </View>
         <View style={styles.userInfo}>
           <Text style={styles.userName}>{item.name}</Text>
