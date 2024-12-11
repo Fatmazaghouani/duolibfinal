@@ -53,6 +53,8 @@ import DuoDone from "./frontend/screens/Duo/DuoDone";
 import DuoChange from "./frontend/screens/Duo/DuoChange";
 import ProfileScreen from "./frontend/screens/Profile/ProfileScreen";
 import EditPro from "./frontend/screens/Profile/EditPro";
+import MyCommunityScreen from "./frontend/screens/Community/MyCommunityScreen";
+
 
 
 
@@ -116,6 +118,7 @@ const App = () => {
         <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
         <Stack.Screen name="ChatbotScreen" component={ChatbotScreen} />
         <Stack.Screen name="EditPro" component={EditPro} />
+        <Stack.Screen name="MyCommunityScreen" component={MyCommunityScreen} />
 
        
       </Stack.Navigator>

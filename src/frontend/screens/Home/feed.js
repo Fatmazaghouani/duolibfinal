@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, Button, TextInput } from 'react-native'; 
+import { View, Text, FlatList, TouchableOpacity, ScrollView, StyleSheet, Image, TextInput } from 'react-native'; 
 import { db, auth } from '../../../backend/firebaseConfig';
-import { collection, onSnapshot, query, where } from '@firebase/firestore';
-import { signOut } from '@firebase/auth';
-import { FontAwesome5 } from '@expo/vector-icons'; // L'icône des autres boutons, reste inchangé
+import { doc, getDoc, addDoc, collection, query, orderBy, where, onSnapshot } from 'firebase/firestore';
+import { FontAwesome5 } from '@expo/vector-icons'; 
+import { FontAwesome } from '@expo/vector-icons';
 
 const Feed = ({ navigation }) => {
+  const [userName, setUserName] = useState(''); // Nouveau state pour stocker le nom de l'utilisateur
   const [users, setUsers] = useState([]);
+  const userId = auth.currentUser?.uid;
+  const [posts, setPosts] = useState([]); // Nouveau state pour les posts
   const currentUser = auth.currentUser; // Utilisateur actuellement connecté
-
+  const [unreadDiscussionsCount, setUnreadDiscussionsCount] = useState(0); // Compteur de messages non lus
+  
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
       const usersData = snapshot.docs
@@ -20,36 +24,38 @@ const Feed = ({ navigation }) => {
     return () => unsubscribe();
   }, []);
 
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth);
-      navigation.replace('Auth'); // Naviguer vers l'écran de connexion après déconnexion
-    } catch (error) {
-      console.error('Sign Out error:', error.message);
-    }
-  };
   useEffect(() => {
-  const messagesQuery = query(
-    collection(db, 'messages'), 
-    where('receiverId', '==', currentUser.uid),  // Filtrer les messages destinés à l'utilisateur connecté
-    where('isRead', '==', false)  // Filtrer ceux qui ne sont pas lus
-  );
+    if (userId) {
+      const q = query(collection(db, 'posts'), orderBy('timestamp', 'desc'));
 
-  const unsubscribeMessages = onSnapshot(messagesQuery, (snapshot) => {
-    // Récupérer les IDs des utilisateurs avec des messages non lus
-    const unreadUserIds = new Set();
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        setPosts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      });
 
-    snapshot.docs.forEach((doc) => {
-      const senderId = doc.data().senderId; // ID de l'expéditeur
-      unreadUserIds.add(senderId); // Ajouter l'ID de l'expéditeur
+      return unsubscribe; // Cleanup
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    const messagesQuery = query(
+      collection(db, 'messages'),
+      where('receiverId', '==', currentUser.uid),  // Filtrer les messages destinés à l'utilisateur connecté
+      where('isRead', '==', false)  // Filtrer ceux qui ne sont pas lus
+    );
+
+    const unsubscribeMessages = onSnapshot(messagesQuery, (snapshot) => {
+      const unreadUserIds = new Set();
+
+      snapshot.docs.forEach((doc) => {
+        const senderId = doc.data().senderId; // ID de l'expéditeur
+        unreadUserIds.add(senderId); // Ajouter l'ID de l'expéditeur
+      });
+
+      setUnreadDiscussionsCount(unreadUserIds.size); // Le nombre de discussions distinctes avec des messages non lus
     });
 
-    setUnreadDiscussionsCount(unreadUserIds.size); // Le nombre de discussions distinctes avec des messages non lus
-  });
-
-  return () => unsubscribeMessages();
-}, []);
-
+    return () => unsubscribeMessages();
+  }, []);
 
   // Fonction pour générer une couleur aléatoire
   const getRandomColor = () => {
@@ -60,9 +66,36 @@ const Feed = ({ navigation }) => {
     }
     return color;
   };
-  const [unreadDiscussionsCount, setUnreadDiscussionsCount] = useState(0);
-  
 
+  const handlePost = async () => {
+    if (text.trim()) {
+      try {
+        // Ajouter le message à Firestore
+        await addDoc(collection(db, 'posts'), {
+          message: text,
+          feeling,
+          likes: 0,
+          timestamp: new Date(),
+          userId: userId,
+          email: userEmail || 'Anonymous',
+        });
+
+        // Mettre à jour l'état des posts après avoir ajouté un message
+        const postsQuery = query(collection(db, 'posts'), orderBy('timestamp', 'desc'));
+        const snapshot = await getDocs(postsQuery);
+        const postsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setPosts(postsData);
+
+        setMessage('Message ajouté avec succès !');
+        setText('');
+        setFeeling(null);
+        setImageUri(null);
+        setTimeout(() => setMessage(''), 3000);
+      } catch (error) {
+        setMessage('Erreur : ' + error.message);
+      }
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -84,16 +117,15 @@ const Feed = ({ navigation }) => {
 
         {/* Icône de messagerie */}
         <TouchableOpacity onPress={() => navigation.navigate('Messages')}>
-  <View style={styles.messageIconContainer}>
-    <FontAwesome5 name="comment-dots" size={20} color="#000" style={styles.messageIcon} />
-    {unreadDiscussionsCount > 0 && (
-      <View style={styles.badge}>
-        <Text style={styles.badgeText}>{unreadDiscussionsCount}</Text>
-      </View>
-    )}
-  </View>
-</TouchableOpacity>
-
+          <View style={styles.messageIconContainer}>
+            <FontAwesome5 name="comment-dots" size={20} color="#000" style={styles.messageIcon} />
+            {unreadDiscussionsCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{unreadDiscussionsCount}</Text>
+              </View>
+            )}
+          </View>
+        </TouchableOpacity>
       </View>
 
       <Text style={styles.friendsSuggestion}>Friends suggestion</Text>
@@ -102,7 +134,7 @@ const Feed = ({ navigation }) => {
       <FlatList
         data={users}
         horizontal
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item) => item._id}  // Utilisation de _id comme clé unique
         renderItem={({ item }) => (
           <TouchableOpacity onPress={() => navigation.navigate('Chat', { user: item })}>
             <View style={styles.userCard}>
@@ -118,7 +150,17 @@ const Feed = ({ navigation }) => {
         )}
       />
 
-     
+      {/* Liste des posts */}
+      <FlatList
+        data={posts}
+        keyExtractor={(item) => item.id}  // Utilisation de 'id' comme clé unique
+        renderItem={({ item }) => (
+          <View style={styles.postCard}>
+            <Text style={styles.postAuthor}>{item.authorName || 'Anonymous'}</Text>
+            <Text style={styles.postContent}>{item.message}</Text> {/* Assure-toi d'utiliser le bon champ */}
+          </View>
+        )}
+      />
 
       {/* Barre de navigation en bas */}
       <View style={styles.bottomBar}>
@@ -130,7 +172,7 @@ const Feed = ({ navigation }) => {
           <FontAwesome5 name="users" size={20} color="#000" />
           <Text style={styles.bottomText}>Duo</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('Community')}>
+        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('MyCommunityScreen')}>
           <FontAwesome5 name="globe" size={20} color="#000" />
           <Text style={styles.bottomText}>Community</Text>
         </TouchableOpacity>
@@ -181,77 +223,90 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderWidth: 1,
     borderRadius: 20,
-    paddingLeft: 15,
+    paddingLeft: 10,
     marginHorizontal: 10,
   },
+  messageIconContainer: {
+    position: 'relative',
+  },
+  messageIcon: {
+    marginLeft: 10,
+  },
+  badge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: 'red',
+    borderRadius: 10,
+    width: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
   friendsSuggestion: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: "700",
-    fontFamily: "Roboto-Bold",
-    color: "#000",  // Texte noir
-    textAlign: "left",
-    marginBottom: 20,
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginVertical: 10,
+    color: '#333',
   },
   userCard: {
     alignItems: 'center',
-    marginRight: 10,
-    padding: 10,
-    borderRadius: 10,
+    marginRight: 15,
   },
   bubble: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 1,
   },
   bubbleText: {
+    color: 'white',
+    fontWeight: 'bold',
     fontSize: 18,
-    color: '#fff',
-    textTransform: 'uppercase',
-    textAlign: 'center',
   },
   userName: {
+    marginTop: 5,
     fontSize: 14,
-    lineHeight: 22,
-    fontWeight: '500',
-    fontFamily: 'Roboto-Medium',
-    color: '#000',
-    textAlign: 'center',
+    color: '#333',
+  },
+  postCard: {
+    backgroundColor: '#f8f8f8',
+    padding: 15,
+    marginVertical: 5,
+    borderRadius: 8,
+    elevation: 2,
+  },
+  postAuthor: {
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  postContent: {
+    fontSize: 14,
+    color: '#555',
   },
   bottomBar: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 20,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    height: 60,
     backgroundColor: '#fff',
     borderTopWidth: 1,
-    borderTopColor: '#ccc',
+    borderTopColor: '#ddd',
+    paddingHorizontal: 15,
   },
   bottomIcon: {
     alignItems: 'center',
   },
   bottomText: {
     fontSize: 12,
-    textAlign: 'center',
+    color: '#000',
   },
-  badge: {
-  position: 'absolute',
-  top: -5,
-  right: -5,
-  backgroundColor: 'red',
-  borderRadius: 10,
-  width: 18,
-  height: 18,
-  justifyContent: 'center',
-  alignItems: 'center',
-},
-badgeText: {
-  color: '#fff',
-  fontSize: 12,
-  fontWeight: 'bold',
-},
 });
 
 export default Feed;
