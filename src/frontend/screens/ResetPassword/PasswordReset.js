@@ -29,6 +29,19 @@ const PasswordReset = ({ navigation }) => {
     }
   };
 
+  // Fonction pour naviguer vers PasswordSuccessScreen
+  const handleVerificationCode = () => {
+    if (!email) {
+      setError('Please enter your email address');
+      return;
+    }
+
+    setError('');
+    setSuccessMessage('');
+    navigation.navigate("ForgotPasswordConfirmationScreen", { email }); // Naviguer vers l'écran de confirmation avec l'email
+  };
+
+
   return (
     <View style={styles.container}>
       {/* Affichage de l'image au début */}
@@ -54,6 +67,11 @@ const PasswordReset = ({ navigation }) => {
       {/* Bouton pour envoyer l'email de réinitialisation */}
       <Pressable onPress={handlePasswordReset} style={styles.resetButton}>
         <Text style={styles.resetButtonText}>Send reset link</Text>
+      </Pressable>
+
+      {/* Bouton pour envoyer un code de vérification */}
+      <Pressable onPress={handleVerificationCode} style={styles.verificationButton}>
+        <Text style={styles.verificationButtonText}>Send verification code</Text>
       </Pressable>
 
       {/* Retour à l'écran de connexion */}
@@ -97,8 +115,20 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 25,
     borderRadius: 30,
+    marginBottom: 10,
   },
   resetButtonText: {
+    fontSize: 18,
+    color: "#fff",
+    fontWeight: "600",
+  },
+  verificationButton: {
+    backgroundColor: "#4caf50",
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 30,
+  },
+  verificationButtonText: {
     fontSize: 18,
     color: "#fff",
     fontWeight: "600",

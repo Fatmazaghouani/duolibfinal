@@ -55,6 +55,13 @@ import DuoChange from "./frontend/screens/Duo/DuoChange";
 import ProfileScreen from "./frontend/screens/Profile/ProfileScreen";
 import EditPro from "./frontend/screens/Profile/EditPro";
 import MyCommunityScreen from "./frontend/screens/Community/MyCommunityScreen";
+import ForgotPasswordConfirmationScreen from './frontend/screens/ResetPassword/ForgotPasswordConfirmationScreen'; 
+import VerificationScreen from './frontend/screens/ResetPassword/VerificationScreen'; 
+import CreatePasswordScreen from './frontend/screens/ResetPassword/CreatePasswordScreen';
+import PasswordSuccessScreen from './frontend/screens/ResetPassword/PasswordSuccessScreen';
+import FriendScreen from './frontend/screens/Home/FriendScreen'; 
+
+
 
 
 
@@ -121,6 +128,12 @@ const App = () => {
         <Stack.Screen name="ChatbotScreen" component={ChatbotScreen} />
         <Stack.Screen name="EditPro" component={EditPro} />
         <Stack.Screen name="MyCommunityScreen" component={MyCommunityScreen} />
+        <Stack.Screen name="ForgotPasswordConfirmationScreen" component={ForgotPasswordConfirmationScreen}   />
+        <Stack.Screen name="VerificationScreen" component={VerificationScreen}   />
+        <Stack.Screen name="CreatePasswordScreen" component={CreatePasswordScreen} />
+        <Stack.Screen name="PasswordSuccessScreen" component={PasswordSuccessScreen} />
+        <Stack.Screen name="FriendScreen" component={FriendScreen} />
+        
         
 
 
