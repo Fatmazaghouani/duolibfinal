@@ -37,8 +37,7 @@ const Logout = ({ navigation }) => {
 
       {/* Message en bas */}
       <Text style={styles.footerMessage}>
-        Toute l'équipe DuoLib vous remercie de votre visite sur l'application et espère que vous avez passé un bon moment en partageant vos expériences. {"\n"} 
-        À bientôt ! 💖
+        The entire DuoLib team thanks you for visiting the app and hopes you had a great time sharing your experiences. {"\n"} See you soon! 💖
       </Text>
     </View>
   );

@@ -38,11 +38,11 @@ const DuoDone = () => {
         <Text style={styles.title}>Details of {userName}</Text>
         <Text style={styles.additionalText}>
           You now have a Duo. {"\n"}
-          We will send them a notification and your email address. {"\n\n"}
+          We will send hil/her a notification and your email address. {"\n\n"}
           If it doesn't fit your choices, you can change it later. {"\n\n"}
-          You can send them a message with this icon{' '}
+          You can send him/her a message with this icon{' '}
           <Icon name="chatbubble-outline" size={20} color="#00ADEF" /> {"\n\n"}
-          or contact them at the following email address{' '}
+          or contact him/her at the following email address{' '}
           <Icon name="mail-outline" size={20} color="#00ADEF" />.
         </Text>
         

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Button } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getFirestore, collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { firebaseApp } from '../../../backend/firebaseConfig';
@@ -217,7 +217,7 @@ const DuoSuggestions = ({ route }) => {
     return (
       <View style={styles.messageContainer}>
         <Text style={styles.messageText}>
-          We could not find any duo suggestions based on your preferences.
+          ⚠️ You should accept to have a duo so we can suggest one for you.
         </Text>
       </View>
     );
@@ -313,15 +313,29 @@ const DuoSuggestions = ({ route }) => {
             </View>
           </View>
         ))
-      ) : (
-        <Text>No users found matching your preferences.</Text>
-      )}
+      ) : <View style={styles.erreur}>
+      <Text style={styles.message}>Sorry..No users found matching your preferences.</Text>
+      <Button title="Go Back" onPress={() => navigation.goBack()} color="#007BFF" />
+    </View>}
     </ScrollView>
     
   );
 };
 
 const styles = StyleSheet.create({
+  erreur: {
+    flex: 1, // Occupe tout l'espace
+    justifyContent: "flex-start", // Aligne le contenu vers le haut pour personnaliser le décalage
+    alignItems: "center", // Centre horizontalement
+    paddingTop: 200, // Décale le contenu vers le bas
+    backgroundColor: "#f8f8f8", // Couleur de fond
+  },
+  message: {
+    fontSize: 18, // Taille du texte
+    textAlign: "center", // Centre le texte
+    color: "#555", // Couleur du texte
+    marginBottom: 20, // Espacement entre le texte et le bouton
+  },
   container: {
     padding: 10,
   },

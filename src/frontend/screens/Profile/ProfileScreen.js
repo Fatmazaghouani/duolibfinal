@@ -166,7 +166,7 @@ const ProfileScreen = () => {
 
       <View style={styles.bioContainer}>
         <View style={styles.nameContainer}>
-          <Text style={styles.nameText}>{userName}</Text>
+          <Text style={styles.nameText}>{userName} </Text>
           <Text style={styles.bioText}>{userBio.bio}</Text>
         </View>
 

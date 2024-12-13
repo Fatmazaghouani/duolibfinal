@@ -38,7 +38,7 @@ const FriendScreen = ({ route }) => {
         gender: user.gender || 'Non renseigné',
         diseases: Object.keys(user.diseaseData || {}).filter((key) => user.diseaseData[key] === true),
         duo: user.duo || null,
-        bio: user.bio || 'Aucune description renseignée',
+        bio: user.bio || 'No Bio Mentionned',
         rareDiseases: user.rareDiseases || [],
         cancers: user.cancers || [],
       });

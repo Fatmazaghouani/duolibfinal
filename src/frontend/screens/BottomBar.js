@@ -24,7 +24,7 @@ const BottomBar = () => {
         <FontAwesome5 name="comments" size={20} color="#000" />
         <Text style={styles.bottomText}>Forum</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('Notifications')}>
+      <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('Notification')}>
         <FontAwesome5 name="bell" size={20} color="#000" />
         <Text style={styles.bottomText}>Notifications</Text>
       </TouchableOpacity>
