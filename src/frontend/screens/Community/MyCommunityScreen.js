@@ -2,90 +2,89 @@ import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Image } from "react-native";
 import { getAuth } from "firebase/auth";
 import { db } from '../../../backend/firebaseConfig';
-import { collection, query, where, getDocs, updateDoc, setDoc, doc } from "firebase/firestore";
+import { collection, query, where, setDoc, doc, updateDoc, onSnapshot } from "firebase/firestore";
 
 const MyCommunityScreen = () => {
   const [users, setUsers] = useState([]); 
-  const [followingStatus, setFollowingStatus] = useState({}); 
+  const [followingStatus, setFollowingStatus] = useState({
+    followedUsers: [],
+    followersUsers: []
+  }); 
   const [selectedTab, setSelectedTab] = useState('peopleIFollow'); 
   const [loading, setLoading] = useState(false); 
   const auth = getAuth();
   const currentUser = auth.currentUser;
 
+  // Fetch users and follow data in real-time
   useEffect(() => {
-    const fetchUsers = async () => {
-      setLoading(true); 
-      try {
-        const usersCollection = collection(db, "users");
-        const q = query(usersCollection);
-        const querySnapshot = await getDocs(q);
+    if (!currentUser) return;
 
-        const usersList = [];
-        const followingState = {};
+    setLoading(true);
 
-        querySnapshot.forEach((doc) => {
-          if (doc.id !== currentUser?.uid) { 
-            usersList.push({ id: doc.id, ...doc.data() });
-            followingState[doc.id] = false;
-          }
-        });
+    const usersCollection = collection(db, "users");
+    const followersRef = collection(db, "followers");
 
-        const followersRef = collection(db, "followers");
-        const followQuery = query(followersRef, where("followerID", "==", currentUser?.uid), where("following", "==", true));
-        const followSnapshot = await getDocs(followQuery);
+    // Real-time listener for all users
+    const unsubscribeUsers = onSnapshot(query(usersCollection), (querySnapshot) => {
+      const usersList = [];
+      querySnapshot.forEach((doc) => {
+        if (doc.id !== currentUser.uid) {
+          usersList.push({ id: doc.id, ...doc.data() });
+        }
+      });
+      setUsers(usersList);
+    });
 
+    // Real-time listener for followed users
+    const unsubscribeFollowed = onSnapshot(
+      query(followersRef, where("followerID", "==", currentUser.uid), where("following", "==", true)),
+      (querySnapshot) => {
         const followedUsers = [];
-        followSnapshot.forEach((doc) => {
+        querySnapshot.forEach((doc) => {
           followedUsers.push(doc.data().followedID);
         });
-
-        const followerQuery = query(followersRef, where("followedID", "==", currentUser?.uid), where("following", "==", true));
-        const followerSnapshot = await getDocs(followerQuery);
-
-        const followersUsers = [];
-        followerSnapshot.forEach((doc) => {
-          followersUsers.push(doc.data().followerID);
-        });
-
-        setUsers(usersList);
         setFollowingStatus((prevState) => ({
           ...prevState,
           followedUsers,
-          followersUsers
         }));
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      } finally {
-        setLoading(false);
       }
-    };
+    );
 
-    fetchUsers();
+    // Real-time listener for followers
+    const unsubscribeFollowers = onSnapshot(
+      query(followersRef, where("followedID", "==", currentUser.uid), where("following", "==", true)),
+      (querySnapshot) => {
+        const followersUsers = [];
+        querySnapshot.forEach((doc) => {
+          followersUsers.push(doc.data().followerID);
+        });
+        setFollowingStatus((prevState) => ({
+          ...prevState,
+          followersUsers,
+        }));
+      }
+    );
+
+    setLoading(false);
+
+    // Cleanup listeners
+    return () => {
+      unsubscribeUsers();
+      unsubscribeFollowed();
+      unsubscribeFollowers();
+    };
   }, [currentUser]);
 
   const handleFollow = async (followedID) => {
-    setLoading(true);
     try {
-      if (!currentUser) {
-        Alert.alert("Error", "You must be logged in to follow someone!");
-        return;
-      }
-
+      setLoading(true);
       const followersRef = collection(db, "followers");
       const docID = `${currentUser.uid}_${followedID}`;
+
       const docRef = doc(followersRef, docID);
 
-      const querySnapshot = await getDocs(
-        query(followersRef, where("followerID", "==", currentUser.uid), where("followedID", "==", followedID))
-      );
+      await setDoc(docRef, { followerID: currentUser.uid, followedID, following: true });
 
-      if (!querySnapshot.empty) {
-        await updateDoc(docRef, { following: true });
-      } else {
-        await setDoc(docRef, { followerID: currentUser.uid, followedID, following: true });
-      }
-
-      setFollowingStatus((prev) => ({ ...prev, [followedID]: true }));
       Alert.alert("Success", "User followed successfully!");
     } catch (error) {
       console.error("Error following user:", error);
@@ -96,29 +95,15 @@ const MyCommunityScreen = () => {
   };
 
   const handleUnfollow = async (followedID) => {
-    setLoading(true);
     try {
-      if (!currentUser) {
-        Alert.alert("Error", "You must be logged in to unfollow someone!");
-        return;
-      }
-
+      setLoading(true);
       const followersRef = collection(db, "followers");
       const docID = `${currentUser.uid}_${followedID}`;
       const docRef = doc(followersRef, docID);
 
-      const querySnapshot = await getDocs(
-        query(followersRef, where("followerID", "==", currentUser.uid), where("followedID", "==", followedID))
-      );
+      await updateDoc(docRef, { following: false });
 
-      if (!querySnapshot.empty) {
-        await updateDoc(docRef, { following: false });
-
-        setFollowingStatus((prev) => ({ ...prev, [followedID]: false }));
-        Alert.alert("Success", "You have unfollowed the user successfully!");
-      } else {
-        Alert.alert("Error", "Follow relationship not found!");
-      }
+      Alert.alert("Success", "User unfollowed successfully!");
     } catch (error) {
       console.error("Error unfollowing user:", error);
       Alert.alert("Error", "Unable to unfollow this user.");
@@ -128,19 +113,17 @@ const MyCommunityScreen = () => {
   };
 
   const renderUser = ({ item }) => {
-    const isFollowing = followingStatus.followedUsers?.includes(item.id);
-    const isFollower = followingStatus.followersUsers?.includes(item.id);
-
+    const isFollowing = followingStatus.followedUsers.includes(item.id);
+    const isFollower = followingStatus.followersUsers.includes(item.id);
     const showCancerIcon = item.diseaseData?.cancer;
     const showRareDiseaseIcon = item.diseaseData?.rareDisease;
 
     return (
       <View style={styles.userCard}>
         <View style={styles.avatarContainer}>
-          <Text style={styles.avatarText}>
-  {item.name ? item.name.charAt(0) : '?'}
-</Text>
+          <Text style={styles.avatarText}>{item.name ? item.name.charAt(0) : '?'}</Text>
         </View>
+
         <View style={styles.userInfo}>
           <Text style={styles.userName}>{item.name}</Text>
           <View style={styles.diseaseIconsContainer}>
@@ -148,63 +131,56 @@ const MyCommunityScreen = () => {
               <Image source={require('../../images/cancer.png')} style={styles.diseaseIcon} />
             )}
             {showRareDiseaseIcon && (
-              <Image source={require('../../images/raredisease.png')} style={styles.diseaseIcon} />
+              <Image source={require('../../images/rare.png')} style={styles.diseaseIcon} />
             )}
           </View>
-        </View>
-        
+  </View>
         <View style={styles.buttonsContainer}>
-          {!isFollowing && isFollower && (
+          {!isFollowing && (
             <TouchableOpacity style={styles.followButton} onPress={() => handleFollow(item.id)}>
-              <Text style={styles.followText}>Follow Back</Text>
+              <Text style={styles.followText}>{isFollower ? "Follow Back" : "Follow"}</Text>
             </TouchableOpacity>
           )}
-          {!isFollowing && !isFollower && (
-            <TouchableOpacity style={styles.followButton} onPress={() => handleFollow(item.id)}>
-              <Text style={styles.followText}>Follow</Text>
-            </TouchableOpacity>
-          )}
+  
           {isFollowing && (
-            <TouchableOpacity style={styles.disabledButton} disabled={true}>
-              <Text style={styles.followingText}>Following</Text>
-            </TouchableOpacity>
-          )}
-          {isFollowing && (
-            <TouchableOpacity style={styles.unfollowButton} onPress={() => handleUnfollow(item.id)}>
-              <Text style={styles.unfollowText}>Unfollow</Text>
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity style={styles.unfollowButton} onPress={() => handleUnfollow(item.id)}>
+                <Text style={styles.unfollowText}>Unfollow</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.followingButton}>
+                <Text style={styles.followingText}>Following</Text>
+              </TouchableOpacity>
+            </>
           )}
         </View>
       </View>
     );
   };
-
+  
   return (
     <View style={styles.container}>
       <Text style={styles.header}>My Community</Text>
-      <View style={styles.tabsContainer}>
-        <TouchableOpacity
-          style={[styles.tab, selectedTab === 'followSuggestions' && styles.activeTab]}
-          onPress={() => setSelectedTab('followSuggestions')}
-        >
-          <Text style={[styles.tabText, selectedTab === 'followSuggestions' && styles.activeTabText]}>Follow Suggestions</Text>
-        </TouchableOpacity>
-      </View>
-      
-      <View style={styles.tabsContainerRow}>
-        <TouchableOpacity
-          style={[styles.tab, selectedTab === 'peopleIFollow' && styles.activeTab]}
-          onPress={() => setSelectedTab('peopleIFollow')}
-        >
-          <Text style={[styles.tabText, selectedTab === 'peopleIFollow' && styles.activeTabText]}>People I Follow</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, selectedTab === 'followers' && styles.activeTab]}
-          onPress={() => setSelectedTab('followers')}
-        >
-          <Text style={[styles.tabText, selectedTab === 'followers' && styles.activeTabText]}>Followers</Text>
-        </TouchableOpacity>
-      </View>
+
+      <View style={styles.tabsContainerColumn}>
+  <TouchableOpacity
+    style={[styles.tab, selectedTab === 'followSuggestions' && styles.activeTab]}
+    onPress={() => setSelectedTab('followSuggestions')}
+  >
+    <Text style={[styles.tabText, selectedTab === 'followSuggestions' && styles.activeTabText]}>Follow Suggestions</Text>
+  </TouchableOpacity>
+  <TouchableOpacity
+    style={[styles.tab, selectedTab === 'peopleIFollow' && styles.activeTab]}
+    onPress={() => setSelectedTab('peopleIFollow')}
+  >
+    <Text style={[styles.tabText, selectedTab === 'peopleIFollow' && styles.activeTabText]}>People I Follow</Text>
+  </TouchableOpacity>
+  <TouchableOpacity
+    style={[styles.tab, selectedTab === 'followers' && styles.activeTab]}
+    onPress={() => setSelectedTab('followers')}
+  >
+    <Text style={[styles.tabText, selectedTab === 'followers' && styles.activeTabText]}>Followers</Text>
+  </TouchableOpacity>
+</View>
 
       {loading ? (
         <ActivityIndicator size="large" color="#007bff" />
@@ -212,11 +188,11 @@ const MyCommunityScreen = () => {
         <FlatList
           data={users.filter(user => {
             if (selectedTab === 'peopleIFollow') {
-              return followingStatus.followedUsers?.includes(user.id);
+              return followingStatus.followedUsers.includes(user.id);
             } else if (selectedTab === 'followers') {
-              return followingStatus.followersUsers?.includes(user.id);
+              return followingStatus.followersUsers.includes(user.id);
             } else if (selectedTab === 'followSuggestions') {
-              return !followingStatus.followedUsers?.includes(user.id);
+              return !followingStatus.followedUsers.includes(user.id);
             }
             return true;
           })}
@@ -241,24 +217,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#333',
   },
-  tabsContainer: {
-    flexDirection: 'column',
-    marginBottom: 20,
-    justifyContent: 'center',
-  },
   tabsContainerRow: {
     flexDirection: 'row',
     justifyContent: 'center',
+    marginBottom: 20,
   },
   tab: {
     paddingVertical: 10,
     paddingHorizontal: 15,
-    marginRight: 10,
+    marginHorizontal: 5,
     borderRadius: 20,
     backgroundColor: '#e0e0e0',
   },
   activeTab: {
-    backgroundColor: '#FF87A0',
+    backgroundColor: '#007bff',
   },
   tabText: {
     fontSize: 16,
@@ -279,6 +251,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     alignItems: 'center',
   },
+
   avatarContainer: {
     width: 50,
     height: 50,
@@ -346,6 +319,49 @@ const styles = StyleSheet.create({
   unfollowText: {
     color: '#fff',
   },
+
+  followingButton: {
+    backgroundColor: '#d1ecf1',
+    marginLeft: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  followingText: {
+    color: '#0c5460',
+    fontWeight: '600',
+  },
+  tabsContainerColumn: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  tab: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginVertical: 5, // Espacement entre les boutons
+    borderRadius: 20,
+    backgroundColor: '#e0e0e0',
+    width: '80%', // Ajuste la largeur des boutons
+    alignItems: 'center', // Centre le texte
+  },
+  activeTab: {
+    backgroundColor: '#007bff',
+  },
+  tabText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  activeTabText: {
+    color: '#fff',
+  },
+  
+
+  
 });
 
 export default MyCommunityScreen;
+
+
+
+

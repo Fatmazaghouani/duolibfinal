@@ -1,29 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, TextInput } from 'react-native';
 import { db, auth } from '../../../backend/firebaseConfig';
-import { doc, getDoc, addDoc, collection, query, onSnapshot, where } from 'firebase/firestore';
+import { doc, getDoc, getDocs, addDoc, collection, query, onSnapshot, where } from 'firebase/firestore';
 import { FontAwesome5 } from '@expo/vector-icons';
 import BottomBar from '../BottomBar';
 
 
-// Function to format the date in text (e.g., "2 hours ago")
+const getRandomColor = () => {
+  const colors = [
+    '#FF5733', '#33FF57', '#3357FF', '#57FF33', '#FF33A6',
+    '#FF9F33', '#9F33FF', '#33FF9F', '#FF33FF', '#33FFF9'
+  ];
+  const randomIndex = Math.floor(Math.random() * colors.length);
+  return colors[randomIndex];
+};
+
 const formatDate = (timestamp) => {
   const now = new Date();
-  const timeDiff = now - timestamp.toDate(); // Convert Firestore Timestamp to JavaScript date
+  const timeDiff = now - timestamp.toDate();
   const seconds = Math.floor(timeDiff / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
 
   if (days > 0) {
-    return `${days} days ago`;
-  } else if (hours > 0) {
-    return `${hours} hours ago`;
-  } else if (minutes > 0) {
-    return `${minutes} minutes ago`;
-  } else {
-    return `${seconds} secondes ago`;
-  }
+  return `${days} days ago`;
+} else if (hours > 0) {
+  return `${hours} hours ago`;
+} else if (minutes > 0) {
+  return `${minutes} minutes ago`;
+} else {
+  return `${seconds} seconds ago`;
+}
+
 };
 
 const Feed = ({ navigation }) => {
@@ -32,30 +41,29 @@ const Feed = ({ navigation }) => {
   const [posts, setPosts] = useState([]);
   const [mappedPosts, setMappedPosts] = useState([]);
   const [unreadDiscussionsCount, setUnreadDiscussionsCount] = useState(0);
-  const [newPost, setNewPost] = useState(''); // To hold the new post text
+  const [newPost, setNewPost] = useState('');
   const currentUser = auth.currentUser;
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [textInputHeight, setTextInputHeight] = useState(40);
 
-  // Fetch the current user's information
   useEffect(() => {
     const fetchCurrentUser = async () => {
       if (currentUser) {
         const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          setUserName(`${userData.name || 'Anonymous'} ${userData.surname || ''}`.trim());
+          setUserName(`${(userData.name || 'Anonymous')} ${(userData.surname || '')}`.trim());
+
         } else {
           setUserName(currentUser.displayName || 'Anonymous');
         }
       }
     };
-
     fetchCurrentUser();
   }, [currentUser]);
 
-  // Fetch all users (excluding the current user)
+  // Fetch users to follow (excluding current user)
   useEffect(() => {
     const unsubscribeUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
       const usersData = snapshot.docs
@@ -67,42 +75,80 @@ const Feed = ({ navigation }) => {
     return () => unsubscribeUsers();
   }, [currentUser]);
 
-  // Fetch posts and enrich with user data
+  // Real-time fetching posts of followed users (and current user)
   useEffect(() => {
-    const fetchPosts = async () => {
-      const postsCollection = collection(db, 'posts');
-      const postsQuery = query(postsCollection);
+    if (!currentUser) return;
 
-      const unsubscribePosts = onSnapshot(postsQuery, (snapshot) => {
-        const postsData = snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+    const followersQuery = query(
+      collection(db, 'followers'),
+      where('followerID', '==', currentUser.uid),
+      where('following', '==', true)
+    );
 
-        const userMap = {};
-        users.forEach((user) => {
-          userMap[user._id] = `${user.name || 'Anonymous'} ${user.surname || ''}`.trim();
+    const unsubscribeFollowers = onSnapshot(followersQuery, (snapshot) => {
+      const followedUserIds = snapshot.docs.map((doc) => doc.data().followedID);
+      followedUserIds.push(currentUser.uid); // Include the current user's posts
+
+      if (followedUserIds.length > 0) {
+        const postsQuery = query(
+          collection(db, 'posts'),
+          where('userId', 'in', followedUserIds)
+        );
+
+        const unsubscribePosts = onSnapshot(postsQuery, (snapshot) => {
+          const postsData = snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+
+          const userMap = {};
+          users.forEach((user) => {
+            userMap[user._id] = `${(user.name || 'Anonymous')} ${(user.surname || '')}`.trim();
+          });
+
+          if (currentUser) {
+            userMap[currentUser.uid] = userName || 'Me';
+          }
+
+          const enrichedPosts = postsData.map((post) => ({
+            ...post,
+            authorName: userMap[post.userId] || 'Anonymous',
+            timeAgo: formatDate(post.timestamp),
+          }));
+
+          const sortedPosts = enrichedPosts.sort((a, b) => b.timestamp.seconds - a.timestamp.seconds);
+
+          setMappedPosts(sortedPosts);
         });
 
-        if (currentUser) {
-          userMap[currentUser.uid] = userName; // Use the current user's name
-        }
+        return () => unsubscribePosts(); // Clean up the listener
+      }
+    });
 
-        const enrichedPosts = postsData.map((post) => ({
-          ...post,
-          authorName: userMap[post.userId] || 'Anonymous',
-          timeAgo: formatDate(post.timestamp), // Add formatted date
-        }));
+    return () => unsubscribeFollowers(); // Clean up the listener
+  }, [currentUser, users, userName]);
 
-        // Sort posts by timestamp in descending order (newest first)
-        const sortedPosts = enrichedPosts.sort((a, b) => b.timestamp.seconds - a.timestamp.seconds);
+  const handlePost = async () => {
+    if (newPost.trim()) {
+      try {
+        const userNameToUse = currentUser?.displayName || 'Anonymous';
+        
+        await addDoc(collection(db, 'posts'), {
+          message: newPost,
+          feeling: '',
+          likes: 0,
+          timestamp: new Date(),
+          userId: currentUser?.uid,
+          authorName: userNameToUse,
+        });
 
-        setPosts(postsData);
-        setMappedPosts(sortedPosts); // Set sorted posts
-      });
-
-      return () => unsubscribePosts();
-    };
-
-    fetchPosts();
-  }, [users, currentUser, userName]);
+        setToastMessage('Your post was uploaded successfully!');
+        setToastVisible(true);
+        setNewPost('');
+        setTimeout(() => setToastVisible(false), 3000);
+        setTextInputHeight(40);
+      } catch (error) {
+        console.error('Error adding post:', error);
+      }
+    }
+  };
 
   // Fetch unread messages count
   useEffect(() => {
@@ -114,7 +160,6 @@ const Feed = ({ navigation }) => {
 
     const unsubscribeMessages = onSnapshot(messagesQuery, (snapshot) => {
       const unreadUserIds = new Set();
-
       snapshot.docs.forEach((doc) => {
         const senderId = doc.data().senderId;
         unreadUserIds.add(senderId);
@@ -126,43 +171,9 @@ const Feed = ({ navigation }) => {
     return () => unsubscribeMessages();
   }, [currentUser]);
 
-  const handlePost = async () => {
-  if (newPost.trim()) {
-    try {
-      const userNameToUse = currentUser?.displayName || 'Anonymous';
-      
-      await addDoc(collection(db, 'posts'), {
-        message: newPost,
-        feeling: '', // Feeling can be added later if needed
-        likes: 0,
-        timestamp: new Date(),
-        userId: currentUser?.uid,
-        authorName: userNameToUse,
-      });
-      setToastMessage('Your post was uploaded successfully!'); 
-      setToastVisible(true);        
-      setNewPost(''); // Clear the input after posting
-      setTimeout(() => setToastVisible(false), 3000);
-      setTextInputHeight(40);
-      console.log('Post added successfully!');
-    } catch (error) {
-      console.error('Error adding post:', error);
-    }
-  }
-};
-
-
-  const getRandomColor = () => {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-  };
-
   return (
     <View style={styles.container}>
+      {/* Header with search and message notifications */}
       <View style={styles.header}>
         <TouchableOpacity>
           <Image source={require('../../images/smalllogo.png')} style={styles.logo} />
@@ -183,7 +194,8 @@ const Feed = ({ navigation }) => {
           </View>
         </TouchableOpacity>
       </View>
-      
+
+      {/* Friends suggestions */}
       <View style={styles.friendsSuggestionContainer}>
         <Text style={styles.friendsSuggestion}>Friends suggestion</Text>
         <FlatList
@@ -191,9 +203,9 @@ const Feed = ({ navigation }) => {
           horizontal
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
-            <TouchableOpacity onPress={() => navigation.navigate('FriendScreen', { user: item })}>
+            <TouchableOpacity onPress={() => navigation.navigate('friendScreen', { user: item })}>
               <View style={styles.userCard}>
-                <View style={[styles.bubble, { backgroundColor: getRandomColor() }]} >
+                <View style={[styles.bubble, { backgroundColor: getRandomColor() }]}>
                   <Text style={styles.bubbleText}>
                     {item.name ? item.name.charAt(0).toUpperCase() : 'A'}
                   </Text>
@@ -207,74 +219,89 @@ const Feed = ({ navigation }) => {
 
       <View style={styles.line} />
 
+      {/* Post input and feed */}
       <View style={styles.postSection}>
         <TextInput
-  style={[styles.postInput, { height: textInputHeight }]} // Dynamically adjust height
-  placeholder="What’s happening?"
-  value={newPost}
-  onChangeText={setNewPost}
-  multiline
-  onContentSizeChange={(contentWidth, contentHeight) => {
-    // Adjust height based on content size
-    setTextInputHeight(contentHeight > 40 ? contentHeight : 40); // Minimum height is 40
-  }}
-/>
-
-
+          style={[styles.postInput, { height: textInputHeight }]}
+          placeholder={`Hi ${userName || 'User'}, What’s happening?`}
+  // Dynamic placeholder
+          value={newPost}
+          onChangeText={setNewPost}
+          multiline
+          onContentSizeChange={(contentWidth, contentHeight) => {
+            setTextInputHeight(contentHeight > 40 ? contentHeight : 40);
+          }}
+        />
         <TouchableOpacity style={styles.postButton} onPress={handlePost}>
           <Text style={styles.postButtonText}>Post</Text>
         </TouchableOpacity>
-
-        <View style={styles.postExtras}>
-          <TouchableOpacity style={styles.iconContainer}>
-            <FontAwesome5 name="image" size={20} color="#000" />
-            <Text style={styles.iconText}>Photo</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.iconContainer}>
-            <FontAwesome5 name="smile" size={20} color="#000" />
-            <Text style={styles.iconText}>Feeling</Text>
-          </TouchableOpacity>
-        </View>
       </View>
-      {toastVisible && (
-        <View style={styles.toast}>
-          <Text style={styles.toastText}>{toastMessage}</Text>
-        </View>
-      )}
 
+      {/* Display posts */}
       <FlatList
         data={mappedPosts}
         keyExtractor={(item) => item.id}
+       ListEmptyComponent={
+  <View style={styles.emptyContainer}>
+    {/* Conteneur pour aligner le logo et le texte "Duolib" sur la même ligne */}
+    <View style={styles.logoContainer}>
+      {/* Logo en haut */}
+      <Image 
+        source={require('../../images/smalllogo.png')} 
+        style={styles.smallLogo} 
+      />
+      
+      {/* Texte "Duolib" */}
+      <Text style={styles.duolibText}>
+        Duolib
+      </Text>
+    </View>
+
+    {/* Texte "Welcome to Duolib" */}
+    <Text style={styles.welcomeToDuolib}>
+      Welcome to Duolib. Now, you can post messages, invite friends and find your Duo.
+    </Text>
+
+    {/* Image sous le texte */}
+    <TouchableOpacity>
+      <Image 
+        source={require('../../images/WelcomeScreen1.png')} 
+        style={styles.welcomeImage} 
+      />
+    </TouchableOpacity>
+  </View>
+}
         renderItem={({ item }) => (
           <View style={styles.postCard}>
             <Text style={styles.postAuthor}>{item.authorName}</Text>
             <Text style={styles.postDate}>{item.timeAgo}</Text>
             <Text style={styles.postContent}>{item.message}</Text>
-
-            {/* Post Actions */}
+            {/* Post actions */}
             <View style={styles.postActions}>
+
+
               <TouchableOpacity style={styles.actionItem}>
                 <FontAwesome5 name="thumbs-up" size={24} color="#377DFF" />
                 <Text style={styles.iconLabel}>Like</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.actionItem}>
-                <FontAwesome5 name="share" size={24} color="#377DFF" />
-                <Text style={styles.iconLabel}>Share</Text>
-              </TouchableOpacity>
+
+
               <TouchableOpacity style={styles.actionItem}>
                 <FontAwesome5 name="comment" size={24} color="#377DFF" />
                 <Text style={styles.iconLabel}>Comment</Text>
               </TouchableOpacity>
+
+
+
               <TouchableOpacity style={styles.actionItem}>
-                <FontAwesome5 name="paper-plane" size={24} color="#377DFF" />
-                <Text style={styles.iconLabel}>Send</Text>
+                <FontAwesome5 name="share" size={24} color="#377DFF" />
+                <Text style={styles.iconLabel}>Share</Text>
               </TouchableOpacity>
+
             </View>
           </View>
         )}
       />
-
       <BottomBar />
     </View>
   );
@@ -285,6 +312,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -446,6 +475,63 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
   },
+  
+  welcomeImage: {
+    width: 700, // Largeur de l'image
+    height: 350, // Hauteur de l'image
+    resizeMode: 'contain', // S'assure que l'image conserve ses proportions
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  emptyMessage: {
+    fontSize: 16,
+    color: '#777',
+    textAlign: 'center',
+  },
+
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center', 
+    padding: 20,
+  },
+  logoContainer: {
+    flexDirection: 'row', 
+    alignItems: 'center', // Aligne l'image et le texte verticalement
+    marginBottom: 20, // Espacement entre le logo/texte et le reste
+  },
+  smallLogo: {
+    width: 30, // Ajustez la taille du logo
+    height: 30,
+    marginRight: 10, // Espacement entre l'image et le texte
+  },
+  duolibText: {
+    fontSize: 18,
+    fontFamily: 'Roboto-Bold',
+    color: '#000000',
+  },
+  welcomeToDuolib: {
+    fontSize: 14,
+    lineHeight: 22,
+    fontFamily: 'Roboto-Regular',
+    color: '#000000',
+    textAlign: 'left',
+    width: 335,
+    marginBottom: 20,
+  },
+  welcomeImage: {
+    width: 700, 
+    height: 300, 
+    resizeMode: 'contain',
+    alignSelf: 'center',
+   
+  },
+
 });
 
 export default Feed;
+
+
