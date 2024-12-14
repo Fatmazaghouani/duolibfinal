@@ -153,11 +153,14 @@ const MyCommunityScreen = () => {
             </>
           )}
         </View>
+        
       </View>
+      
     );
   };
   
   return (
+
     <View style={styles.container}>
       <Text style={styles.header}>My Community</Text>
 
@@ -230,7 +233,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#e0e0e0',
   },
   activeTab: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#FF87A0',
   },
   tabText: {
     fontSize: 16,
@@ -256,7 +259,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#007bff',
+    backgroundColor: '#FF87A0',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 15,
@@ -286,13 +289,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   followButton: {
-    backgroundColor: '#28a745', // Green color for Follow button
+    backgroundColor: '#7FBF00', // Green color for Follow button
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: 20,
   },
   followBackButton: {
-    backgroundColor: '#28a745', // Green color for Follow Back button
+    backgroundColor: '#7FBF00', // Green color for Follow Back button
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: 20,
@@ -313,7 +316,7 @@ const styles = StyleSheet.create({
   unfollowButton: {
     paddingHorizontal: 15,
     paddingVertical: 8,
-    backgroundColor: '#f44336',
+    backgroundColor: '#37CDFF',
     borderRadius: 20,
   },
   unfollowText: {
@@ -346,7 +349,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', // Centre le texte
   },
   activeTab: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#FF87A0',
   },
   tabText: {
     fontSize: 16,
@@ -355,9 +358,6 @@ const styles = StyleSheet.create({
   activeTabText: {
     color: '#fff',
   },
-  
-
-  
 });
 
 export default MyCommunityScreen;

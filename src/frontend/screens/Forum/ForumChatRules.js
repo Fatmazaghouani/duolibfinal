@@ -1,9 +1,11 @@
 import React from 'react';
 import { ScrollView, View, Text, StyleSheet, Image } from 'react-native';
+import BottomBar from '../BottomBar';
 
 const ForumChatRules = () => {
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
+ return (
+    <View style={styles.container}>
+       <ScrollView contentContainerStyle={styles.scrollContainer}>
       {/* Header Section */}
       <View style={styles.header}>
         <Image
@@ -58,10 +60,25 @@ const ForumChatRules = () => {
         <Text style={styles.ruleDetail}>• Messages written in another language not available on Duolib.</Text>
       </View>
     </ScrollView>
+
+      {/* BottomBar */}
+      <View style={styles.bottomBarContainer}>
+        <BottomBar />
+      </View>
+    </View>
   );
-};
+  };
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    paddingBottom: 60, // Add padding to the bottom to ensure content isn't hidden behind the BottomBar
+  },
+  bottomBarContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
   container: {
     padding: 20,
     backgroundColor: '#fafafa',

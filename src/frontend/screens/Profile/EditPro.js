@@ -4,8 +4,8 @@ import { auth, db } from '../../../backend/firebaseConfig';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import BottomBar from '../BottomBar';
-
+import CheckBox from 'expo-checkbox';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 const EditPro = () => {
   const [name, setName] = useState('');
@@ -17,11 +17,20 @@ const EditPro = () => {
   const [zipCode, setZipCode] = useState('');
   const [gender, setGender] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
-  const [cancers, setCancers] = useState([]); // List of cancers
-  const [rareDiseases, setRareDiseases] = useState([]); // List of rare diseases
+  const [showName, setShowName] = useState(false);
+  const [receiveNewsletter, setReceiveNewsletter] = useState(false);
   const [bio, setBio] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [referral, setReferral] = useState(''); // New state for referral
+  const [diseaseData, setDiseaseData] = useState({
+    noDisease: false,
+    rareDisease: false,
+    cancer: false,
+    metastasisCancer: false,
+    curedCancer: false,
+  });
 
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const userId = auth.currentUser?.uid;
   const navigation = useNavigation();
 
@@ -41,10 +50,18 @@ const EditPro = () => {
             setZipCode(userData.zipCode || '');
             setGender(userData.gender || '');
             setDateOfBirth(userData.dateOfBirth || '');
-            setCancers(userData.cancers || []);
-            setRareDiseases(userData.rareDiseases || []);
+            setShowName(userData.showName || false);
+            setReceiveNewsletter(userData.receiveNewsletter || false);
             setBio(userData.bio || '');
             setPhoneNumber(userData.phoneNumber || '');
+            setReferral(userData.referral || ''); // Set referral data if exists
+            setDiseaseData(userData.diseaseData || { // Load disease data if available
+              noDisease: false,
+              rareDisease: false,
+              cancer: false,
+              metastasisCancer: false,
+              curedCancer: false,
+            });
           }
         })
         .catch((error) => console.error('Error fetching user data:', error));
@@ -65,10 +82,12 @@ const EditPro = () => {
           zipCode,
           gender,
           dateOfBirth,
-          cancers,
-          rareDiseases,
+          showName,
+          receiveNewsletter,
           bio,
           phoneNumber,
+          referral,
+          diseaseData, // Save disease data
         });
 
         Alert.alert(
@@ -83,6 +102,26 @@ const EditPro = () => {
     }
   };
 
+  const showDatePicker = () => {
+    setDatePickerVisibility(true);
+  };
+
+  const hideDatePicker = () => {
+    setDatePickerVisibility(false);
+  };
+
+  const handleConfirm = (date) => {
+    setDateOfBirth(date.toLocaleDateString());
+    hideDatePicker();
+  };
+
+  const handleDiseaseSelection = (disease) => {
+    setDiseaseData((prevData) => ({
+      ...prevData,
+      [disease]: !prevData[disease], // Toggle disease selection
+    }));
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -94,7 +133,7 @@ const EditPro = () => {
 
       <Text style={styles.title}>Edit Profile</Text>
 
-      {/* Display input fields with labels */}
+      {/* Existing fields */}
       <Text style={styles.label}>First Name</Text>
       <TextInput style={styles.input} value={name} onChangeText={setName} />
 
@@ -116,38 +155,112 @@ const EditPro = () => {
       <Text style={styles.label}>Zip Code</Text>
       <TextInput style={styles.input} value={zipCode} onChangeText={setZipCode} />
 
+      {/* Gender Selection */}
       <Text style={styles.label}>Gender</Text>
-      <TextInput style={styles.input} value={gender} onChangeText={setGender} />
+      <View style={styles.genderSelection}>
+        <TouchableOpacity
+          style={[styles.genderOption, gender === 'male' && styles.selectedOption]}
+          onPress={() => setGender('male')}
+        >
+          <Text style={styles.genderText}>Male</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.genderOption, gender === 'female' && styles.selectedOption]}
+          onPress={() => setGender('female')}
+        >
+          <Text style={styles.genderText}>Female</Text>
+        </TouchableOpacity>
+      </View>
 
-      <Text style={styles.label}>Date of Birth (DD/MM/YYYY)</Text>
-      <TextInput style={styles.input} value={dateOfBirth} onChangeText={setDateOfBirth} />
-
-      <Text style={styles.label}>Bio</Text>
-      <TextInput
-        style={[styles.input, styles.bioInput]}
-        value={bio}
-        onChangeText={setBio}
-        multiline
+      {/* Date of Birth */}
+      <Text style={styles.label}>Date of Birth</Text>
+      <TouchableOpacity onPress={showDatePicker} style={styles.input}>
+        <Text style={styles.dateText}>{dateOfBirth || 'Select Date of Birth'}</Text>
+      </TouchableOpacity>
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible}
+        mode="date"
+        onConfirm={handleConfirm}
+        onCancel={hideDatePicker}
       />
 
-      <Text style={styles.label}>Phone Number</Text>
-      <TextInput style={styles.input} value={phoneNumber} onChangeText={setPhoneNumber} />
+      {/* Referral Field */}
+      <Text style={styles.label}>How did you hear about us?</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter referral information"
+        value={referral}
+        onChangeText={setReferral}
+      />
 
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+      {/* Disease Selection */}
+      <Text style={styles.label}>Select Diseases</Text>
+      <TouchableOpacity
+        style={styles.option}
+        onPress={() => handleDiseaseSelection('noDisease')}
+      >
+        <View style={[styles.checkbox, diseaseData.noDisease && styles.selectedCheckbox]} />
+        <Text style={styles.optionText}>I have no disease</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.option}
+        onPress={() => handleDiseaseSelection('rareDisease')}
+      >
+        <View style={[styles.checkbox, diseaseData.rareDisease && styles.selectedCheckbox]} />
+        <Text style={styles.optionText}>I have a rare disease</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.option}
+        onPress={() => handleDiseaseSelection('cancer')}
+      >
+        <View style={[styles.checkbox, diseaseData.cancer && styles.selectedCheckbox]} />
+        <Text style={styles.optionText}>I have cancer</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.option}
+        onPress={() => handleDiseaseSelection('metastasisCancer')}
+      >
+        <View style={[styles.checkbox, diseaseData.metastasisCancer && styles.selectedCheckbox]} />
+        <Text style={styles.optionText}>I have metastasis cancer</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.option}
+        onPress={() => handleDiseaseSelection('curedCancer')}
+      >
+        <View style={[styles.checkbox, diseaseData.curedCancer && styles.selectedCheckbox]} />
+        <Text style={styles.optionText}>I had cancer and I'm cured</Text>
+      </TouchableOpacity>
+
+      {/* Receive Newsletter */}
+      <View style={styles.newsletterContainer}>
+  <CheckBox value={receiveNewsletter} onValueChange={setReceiveNewsletter} />
+  <Text style={styles.newsletterText}>Receive Newsletter</Text>
+</View>
+
+      {/* Bio */}
+      <Text style={styles.label}>Bio</Text>
+<TextInput
+  style={[styles.input, {height: 80}]}  // On applique un style modifié pour la hauteur
+  value={bio}
+  onChangeText={setBio}
+  multiline={true}  // Permet de rendre le champ multi-lignes
+  textAlignVertical="top"  // Permet d'aligner le texte en haut du champ
+/>
+
+      {/* Save Button */}
+      <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
         <Text style={styles.saveButtonText}>Save</Text>
       </TouchableOpacity>
-      
     </ScrollView>
-    
-    
   );
-  
-
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     padding: 20,
     backgroundColor: '#fff',
   },
@@ -155,48 +268,90 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
   },
   logo: {
-    width: 40,
-    height: 40,
+    width: 100,
+    height: 50,
+    resizeMode: 'contain',
+  },
+  messageIcon: {
+    marginRight: 10,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginVertical: 20,
   },
   label: {
     fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    marginTop: 10,
+    marginVertical: 5,
   },
   input: {
     height: 40,
-    borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 10,
+    borderWidth: 1,
     paddingHorizontal: 10,
+    borderRadius: 5,
     marginBottom: 10,
   },
-  bioInput: {
-    height: 80,
-    textAlignVertical: 'top',
+  genderSelection: {
+    flexDirection: 'row',
+    marginVertical: 10,
+  },
+  genderOption: {
+    padding: 10,
+    marginHorizontal: 5,
+    borderRadius: 5,
+    borderWidth: 1,
+  },
+  selectedOption: {
+    backgroundColor: '#0078D4',
+  },
+  genderText: {
+    color: '#0078D4',
+  },
+  dateText: {
+    color: '#0078D4',
+  },
+  option: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderWidth: 1,
+    borderRadius: 5,
+    marginRight: 10,
+  },
+  selectedCheckbox: {
+    backgroundColor: '#0078D4',
+  },
+  optionText: {
+    fontSize: 16,
+    
   },
   saveButton: {
-    backgroundColor: '#4CAF50',
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 30,
-    alignItems: 'center',
+    backgroundColor: '#0078D4',
+    paddingVertical: 15,
+    borderRadius: 5,
     marginTop: 20,
   },
   saveButtonText: {
+    textAlign: 'center',
     color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
   },
+  newsletterContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginVertical: 10,
+},
+newsletterText: {
+  fontSize: 16,
+  marginLeft: 10,  // Espacement entre la checkbox et le texte
+},
 });
 
 export default EditPro;

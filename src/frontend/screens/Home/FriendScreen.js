@@ -4,6 +4,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { db, auth } from '../../../backend/firebaseConfig';
 import { doc, getDoc, collection, query, orderBy, where, onSnapshot } from 'firebase/firestore';
+import BottomBar from '../BottomBar';  // Import du BottomBar
 
 const FriendScreen = ({ route }) => {
   const [showIntro, setShowIntro] = useState(true);
@@ -71,6 +72,8 @@ const FriendScreen = ({ route }) => {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* Votre contenu principal ici */}
+
         <View style={styles.header}>
           <TouchableOpacity>
             <Image source={require('../../images/smalllogo.png')} style={styles.logo} />
@@ -92,11 +95,11 @@ const FriendScreen = ({ route }) => {
 
         <View style={styles.bioContainer}>
           <View style={styles.nameContainer}>
-          <Text style={styles.nameText}>{userName} {user.surname || ''}</Text>
-          <Text style={styles.bioText}>{userBio.bio}</Text>
+            <Text style={styles.nameText}>{userName} {user.surname || ''}</Text>
+            <Text style={styles.bioText}>{userBio.bio}</Text>
           </View>
 
-          <View style={styles.bioDetailsContainer}>
+          <View style={{ flex: 1, backgroundColor: '#fff', padding: 20 }}>
             {showIntro && (
               <>
                 <Text style={styles.introText}>INTRO</Text>
@@ -158,6 +161,7 @@ const FriendScreen = ({ route }) => {
                 )}
               </View>
             )}
+
             <View style={styles.buttonContainer}>
               {showIntro ? (
                 <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
@@ -176,7 +180,6 @@ const FriendScreen = ({ route }) => {
         {posts.length > 0 ? (
           posts.map((post) => (
             <View key={post.id} style={styles.postCard}>
-                
               <Text style={styles.postAuthor}>{userName} {user.surname || ''}</Text>
               <Text style={styles.postTimestamp}>{new Date(post.timestamp?.toDate()).toLocaleString()}</Text>
               <Text style={styles.postText}>{post.message}</Text>
@@ -204,12 +207,25 @@ const FriendScreen = ({ route }) => {
         ) : (
           <Text>No posts yet.</Text>
         )}
+
+        {/* Ajouter le BottomBar ici */}
+        
       </ScrollView>
+      <View style={styles.bottomBarContainer}>
+        <BottomBar />
+      </View>
+     
     </View>
   );
 };
-
 const styles = StyleSheet.create({
+  bottomBarContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  
     container: {
       flex: 1,
       backgroundColor: '#f9f9f9',
@@ -241,22 +257,25 @@ const styles = StyleSheet.create({
       marginHorizontal: 10,
     },
     imageContainer: {
-      alignItems: 'center',
-      marginTop: 20,
-    },
-    image109Icon: {
-      width: 200,
-      height: 200,
-      marginBottom: 20,
-    },
+    position: 'relative',
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  image109Icon: {
+    width: '100%',
+    height: 112,
+  },
     initialCircle: {
-      width: 60,
-      height: 60,
-      borderRadius: 30,
-      backgroundColor: '#377DFF',
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
+    position: 'absolute',
+    bottom: -20,
+    left: 20,
+    backgroundColor: '#377DFF',
+    width: 70, // Augmentez la largeur de la bulle
+    height: 70, // Augmentez la hauteur de la bulle
+    borderRadius: 35, 
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
     initialText: {
       color: 'white',
       fontSize: 24,
@@ -279,11 +298,12 @@ const styles = StyleSheet.create({
     },
     bioDetailsContainer: {
       marginBottom: 20,
+      backgroundColor: '#fff'
     },
     introText: {
       fontSize: 22,
       fontWeight: 'bold',
-      color: '#377DFF',
+      color: '#37CDFF',
       marginBottom: 10,
     },
     bioItem: {
@@ -325,7 +345,7 @@ const styles = StyleSheet.create({
       alignItems: 'center',
     },
     nextButton: {
-      backgroundColor: '#377DFF',
+      backgroundColor: '#FF87A0',
       paddingVertical: 10,
       paddingHorizontal: 30,
       borderRadius: 20,
@@ -338,7 +358,7 @@ const styles = StyleSheet.create({
     latestPosts: {
       fontSize: 22,
       fontWeight: 'bold',
-      color: '#377DFF',
+      color: '#37CDFF',
       marginBottom: 10,
       marginLeft: 20,
     },
@@ -377,6 +397,7 @@ const styles = StyleSheet.create({
       color: '#377DFF',
       marginLeft: 5,
     },
+    
   });
 
 export default FriendScreen;

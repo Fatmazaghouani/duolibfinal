@@ -3,6 +3,8 @@ import { View, Text, TouchableOpacity, StyleSheet, TextInput, ScrollView, Image 
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';  // Importer useNavigation
 import { FontAwesome5 } from '@expo/vector-icons'; // Importation des icônes
+import BottomBar from '../BottomBar';
+
 
 const DuoStart = () => {
   const navigation = useNavigation();  // Hook de navigation
@@ -96,51 +98,17 @@ const DuoStart = () => {
           <Text style={styles.buttonText}>Change my Duo</Text>
         </TouchableOpacity>
       </ScrollView>
-
-      {/* Footer */}
-      <View style={styles.footer}>
-        {/* Feed */}
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate('Feed')}>
-          <FontAwesome5 name="home" size={20} color="#000" />
-          <Text style={styles.footerText}>Feed</Text>
-        </TouchableOpacity>
-        {/* Duo with Active Indicator */}
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate('DuoStart')}>
-          <FontAwesome5 name="users" size={20} color="#00ADEF" /> {/* Duo highlighted */}
-          <Text style={[styles.footerText, styles.activeFooterText]}>Duo</Text>
-          <View style={styles.activeIndicator} /> {/* Barre active sous Duo */}
-        </TouchableOpacity>
-        {/* Profile */}
-        <TouchableOpacity style={styles.footerItem} onPress={goToProfile}>
-          <FontAwesome5 name="user-circle" size={20} color="#000" /> {/* Icone de profil */}
-          <Text style={styles.footerText}>Profile</Text>
-        </TouchableOpacity>
-        {/* Community */}
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate('Community')}>
-          <FontAwesome5 name="globe" size={20} color="#000" />
-          <Text style={styles.footerText}>Community</Text>
-        </TouchableOpacity>
-        {/* Forum */}
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate('ForumScreen')}>
-          <FontAwesome5 name="comments" size={20} color="#000" />
-          <Text style={styles.footerText}>Forum</Text>
-        </TouchableOpacity>
-        {/* Notifications */}
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate('Notifications')}>
-          <FontAwesome5 name="bell" size={20} color="#000" />
-          <Text style={styles.footerText}>Notifications</Text>
-        </TouchableOpacity>
-        {/* Settings */}
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate('Settings')}>
-          <FontAwesome5 name="cogs" size={20} color="#000" />
-          <Text style={styles.footerText}>Settings</Text>
-        </TouchableOpacity>
+      <View style={styles.bottomBarContainer}>
+        <BottomBar />
       </View>
+
+      
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
@@ -168,6 +136,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     marginBottom: 10,
+    paddingBottom: 60,
   },
   title: {
     fontSize: 22,

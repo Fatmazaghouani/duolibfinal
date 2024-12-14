@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { FontAwesome5 } from '@expo/vector-icons';
+import BottomBar from '../BottomBar';
 
 const DuoPreferences = () => {
   const [preferences, setPreferences] = useState({
@@ -48,6 +49,7 @@ const DuoPreferences = () => {
       </View>
 
       <ScrollView style={styles.content}>
+      
         <Text style={styles.title}>Duo Preferences</Text>
 
         {/* Accept Duo */}
@@ -138,26 +140,22 @@ const DuoPreferences = () => {
           <Text style={styles.buttonText}>See Results</Text>
         </TouchableOpacity>
       </ScrollView>
-
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate('Feed')}>
-          <FontAwesome5 name="home" size={20} color="#000" />
-          <Text style={styles.footerText}>Feed</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate('DuoStart')}>
-          <FontAwesome5 name="users" size={20} color="#00ADEF" />
-          <Text style={[styles.footerText, styles.activeFooterText]}>Duo</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerItem} onPress={goToProfile}>
-          <FontAwesome5 name="user-circle" size={20} color="#000" />
-          <Text style={styles.footerText}>Profile</Text>
-        </TouchableOpacity>
+      <View style={styles.bottomBarContainer}>
+        <BottomBar />
       </View>
+
+    
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  bottomBarContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -168,6 +166,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 15,
     backgroundColor: '#fff',
+
   },
   searchInput: {
     flex: 1,
@@ -179,8 +178,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     paddingTop: 10,
+    paddingBottom: 20,
   },
   title: {
     fontSize: 24,

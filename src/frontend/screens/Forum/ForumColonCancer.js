@@ -3,6 +3,7 @@ import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity, ScrollVi
 import { getAuth } from 'firebase/auth'; 
 import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
+import BottomBar from '../BottomBar';
 
 // Initialiser Firestore
 const db = getFirestore();
@@ -72,7 +73,8 @@ const ForumColonCancer = () => {
   }, []);
 
   return (
-    <ScrollView style={styles.container}>
+  <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
       <Text style={styles.title}>Colon Cancer Forum</Text>
 
       <FlatList
@@ -128,10 +130,24 @@ const ForumColonCancer = () => {
         <Text style={styles.buttonText}>Post</Text>
       </TouchableOpacity>
     </ScrollView>
+    {/* BottomBar */}
+      <View style={styles.bottomBarContainer}>
+        <BottomBar />
+      </View>
+       </View>
   );
 };
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    paddingBottom: 60, // Add padding to the bottom to ensure content isn't hidden behind the BottomBar
+  },
+   bottomBarContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
   container: { flex: 1, backgroundColor: '#f9f9f9', padding: 15 },
   title: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 20, color: '#2c3e50' },
   postContainer: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10 },

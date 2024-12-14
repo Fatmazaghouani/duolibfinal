@@ -5,6 +5,8 @@ import { getFirestore, collection, getDocs, query, where, doc, getDoc } from 'fi
 import { firebaseApp } from '../../../backend/firebaseConfig';
 import { getAuth } from 'firebase/auth';
 import { updateDoc } from 'firebase/firestore';
+import BottomBar from '../BottomBar';
+
 
 
 // Fonction pour calculer l'âge
@@ -224,8 +226,8 @@ const DuoSuggestions = ({ route }) => {
   };
 
   return (
-    
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
+    <ScrollView style={styles.scrollContainer}>
       {showMessage ? renderNoDuoMessage() : null}
 
       {duoResults.length > 0 ? (
@@ -256,7 +258,8 @@ const DuoSuggestions = ({ route }) => {
             <View style={styles.buttonsContainer}>
               <TouchableOpacity
                 style={styles.viewProfileButton}
-                onPress={() => navigation.navigate('UserProfile', { userId: user.uid })}
+                onPress={() => navigation.navigate('FriendScreen', { userId: user.uid })}
+                
               >
                 <Text style={styles.viewProfileButtonText}>View Profile</Text>
               </TouchableOpacity>
@@ -318,11 +321,32 @@ const DuoSuggestions = ({ route }) => {
       <Button title="Go Back" onPress={() => navigation.goBack()} color="#007BFF" />
     </View>}
     </ScrollView>
+    {/* Bottom Bar */}
+    
+    <View style={styles.bottomBarContainer}>
+      <BottomBar />
+    </View>
+  </View>
     
   );
+  
 };
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    paddingBottom: 700, // Ajout de padding au bas pour éviter que le contenu soit caché par la BottomBar
+  },
+  bottomBarContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  container: {
+    padding: 20,
+    backgroundColor: '#fafafa',
+    flex: 1,  // Pour s'assurer que le contenu occupe toute la hauteur de l'écran
+  },
   erreur: {
     flex: 1, // Occupe tout l'espace
     justifyContent: "flex-start", // Aligne le contenu vers le haut pour personnaliser le décalage
@@ -336,9 +360,7 @@ const styles = StyleSheet.create({
     color: "#555", // Couleur du texte
     marginBottom: 20, // Espacement entre le texte et le bouton
   },
-  container: {
-    padding: 10,
-  },
+  
   userCard: {
     backgroundColor: '#fff',
     padding: 10,
