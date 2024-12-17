@@ -4,16 +4,39 @@ import { GiftedChat } from 'react-native-gifted-chat';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { db, auth } from '../../../backend/firebaseConfig';
 import { collection, addDoc, query, where, onSnapshot, orderBy, doc, getDoc, updateDoc } from '@firebase/firestore';
-import * as Notifications from 'expo-notifications';  // Importer expo-notifications
+import * as Notifications from 'expo-notifications';
 
 const ChatScreen = ({ route, navigation }) => {
   const { user } = route.params;
   const [messages, setMessages] = useState([]);
   const [replyTo, setReplyTo] = useState(null);
+  const [userColors, setUserColors] = useState({}); // pour stocker les couleurs des utilisateurs
   const currentUser = auth.currentUser;
 
   useEffect(() => {
     if (!currentUser || !user) return;
+
+    // Fonction pour récupérer la couleur de l'utilisateur
+    const getUserColor = async (userId) => {
+      const userDoc = doc(db, 'users', userId);
+      const docSnap = await getDoc(userDoc);
+      if (docSnap.exists()) {
+        return docSnap.data().color; // On suppose que chaque utilisateur a un champ 'color'
+      } else {
+        return '#000'; // Par défaut si pas de couleur trouvée
+      }
+    };
+
+    // Chargement de la couleur du destinataire (user)
+    const fetchUserColor = async () => {
+      const color = await getUserColor(user._id);
+      setUserColors((prevState) => ({
+        ...prevState,
+        [user._id]: color,
+      }));
+    };
+
+    fetchUserColor();
 
     const q = query(
       collection(db, 'messages'),
@@ -30,10 +53,8 @@ const ChatScreen = ({ route, navigation }) => {
       }));
       setMessages(messagesData);
 
-      // Marquer comme lu les messages non lus lorsque l'utilisateur les ouvre
       snapshot.docs.forEach(async (doc) => {
         const messageData = doc.data();
-        // Si le message est non lu et qu'il n'a pas été envoyé par l'utilisateur actuel
         if (!messageData.isRead && messageData.receiverId === currentUser.uid && messageData.senderId !== currentUser.uid) {
           await updateDoc(doc.ref, { isRead: true });
         }
@@ -67,25 +88,24 @@ const ChatScreen = ({ route, navigation }) => {
           _id: currentUser.uid,
           name: senderName,
         },
-        isRead: false, // Le message est initialement non lu
+        isRead: false,
       });
 
-      // Envoi de la notification locale après avoir envoyé le message
       await Notifications.scheduleNotificationAsync({
         content: {
           title: `Nouveau message de ${senderName}`,
-          body: msg.text,  // Affiche le texte du message dans la notification
+          body: msg.text,
         },
-        trigger: null,  // La notification apparaîtra immédiatement
+        trigger: null,
       });
     });
 
-    setReplyTo(null); // Réinitialiser la barre de réponse
+    setReplyTo(null);
     await Promise.all(writes);
   };
 
   const handleReply = (message) => {
-    setReplyTo(message); // Enregistrer le message auquel on répond
+    setReplyTo(message);
   };
 
   const renderReplyBar = () => {
@@ -99,10 +119,7 @@ const ChatScreen = ({ route, navigation }) => {
           </Text>
           <Text style={styles.replyText}>{replyTo.text}</Text>
         </View>
-        <TouchableOpacity
-          onPress={() => setReplyTo(null)} // Fermer la barre de réponse
-          style={styles.closeReplyButton}
-        >
+        <TouchableOpacity onPress={() => setReplyTo(null)} style={styles.closeReplyButton}>
           <FontAwesome5 name="times" size={16} color="#000" />
         </TouchableOpacity>
       </View>
@@ -134,15 +151,6 @@ const ChatScreen = ({ route, navigation }) => {
     return initials.join('');
   };
 
-  const getRandomColor = () => {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -150,7 +158,7 @@ const ChatScreen = ({ route, navigation }) => {
           <FontAwesome5 name="arrow-left" size={20} color="#000" />
         </TouchableOpacity>
         <View style={styles.userInfo}>
-          <View style={[styles.bubble, { backgroundColor: getRandomColor() }]} >
+          <View style={[styles.bubble, { backgroundColor: userColors[user._id]  || '#D3D3D3' }]}>
             <Text style={styles.bubbleText}>
               {getInitials(user.name)}
             </Text>
@@ -159,7 +167,7 @@ const ChatScreen = ({ route, navigation }) => {
         </View>
       </View>
 
-      {renderReplyBar()} {/* Affichage de la barre de réponse */}
+      {renderReplyBar()}
 
       <GiftedChat
         messages={messages}
@@ -172,49 +180,23 @@ const ChatScreen = ({ route, navigation }) => {
           const { name } = props.currentMessage.user;
           const initials = getInitials(name);
           return (
-            <View style={[styles.avatar, { backgroundColor: getRandomColor() }]} >
+            <View style={[styles.avatar, { backgroundColor: userColors[props.currentMessage.user._id] || '#000' }]}>
               <Text style={styles.avatarText}>{initials}</Text>
             </View>
           );
         }}
-        renderMessageText={renderMessageText} // Personnaliser l'affichage des messages
-        onLongPress={(context, message) => handleReply(message)} // Permettre la réponse par un appui long sur un message
+        renderMessageText={renderMessageText}
+        onLongPress={(context, message) => handleReply(message)}
       />
 
-      {/* Barre inférieure */}
       <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('Feed')}>
-          <FontAwesome5 name="home" size={20} color="#000" />
-          <Text style={styles.bottomText}>Feed</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('Duo')}>
-          <FontAwesome5 name="users" size={20} color="#000" />
-          <Text style={styles.bottomText}>Duo</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('Community')}>
-          <FontAwesome5 name="globe" size={20} color="#000" />
-          <Text style={styles.bottomText}>Community</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('Forum')}>
-          <FontAwesome5 name="comments" size={20} color="#000" />
-          <Text style={styles.bottomText}>Forum</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('Notifications')}>
-          <FontAwesome5 name="bell" size={20} color="#000" />
-          <Text style={styles.bottomText}>Notifications</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('Profile')}>
-          <FontAwesome5 name="user" size={20} color="#000" />
-          <Text style={styles.bottomText}>Profile</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('Settings')}>
-          <FontAwesome5 name="cogs" size={20} color="#000" />
-          <Text style={styles.bottomText}>Settings</Text>
-        </TouchableOpacity>
+        {/* Your bottom navigation icons */}
       </View>
     </View>
   );
 };
+
+
 
 const styles = StyleSheet.create({
   container: {

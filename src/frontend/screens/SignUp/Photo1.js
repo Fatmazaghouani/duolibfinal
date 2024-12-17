@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker'; // Importation du module pour choisir ou prendre une photo
+import { db, auth } from '../../../backend/firebaseConfig'; // Importez votre configuration Firebase
+import { doc, setDoc } from 'firebase/firestore'; // Importez les fonctions nécessaires pour Firestore
 
 const Photo1 = ({ navigation }) => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -22,8 +24,19 @@ const Photo1 = ({ navigation }) => {
     }
   };
 
-  const handleNext = () => {
-    navigation.navigate('AccountVerification'); // Modifier selon la navigation suivante
+  // Ajouter un champ 'color' dans Firestore pour l'utilisateur
+  const handleNext = async () => {
+    try {
+      const userId = 'USER_ID'; // Remplacez par l'ID de l'utilisateur (vous pouvez le récupérer avec Firebase Authentication)
+      const userRef = doc(db, 'users', auth.currentUser.uid); // Référence à l'utilisateur dans la collection 'users'
+      
+      // Ajouter ou mettre à jour le champ 'color' dans le document utilisateur
+      await setDoc(userRef, { color: '#5EFFFF' }, { merge: true });
+
+      navigation.navigate('AccountVerification'); // Modifier selon la navigation suivante
+    } catch (error) {
+      console.error("Error updating document: ", error);
+    }
   };
 
   return (
@@ -74,6 +87,8 @@ const Photo1 = ({ navigation }) => {
     </ScrollView>
   );
 };
+
+
 
 const styles = StyleSheet.create({
   container: {

@@ -1,19 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, TextInput } from 'react-native';
 import { db, auth } from '../../../backend/firebaseConfig';
-import { doc, getDoc, getDocs, addDoc, collection, query, onSnapshot, where } from 'firebase/firestore';
+import { doc, getDoc, getDocs,arrayRemove,arrayUnion,updateDoc, setDoc, addDoc, collection, query, increment, onSnapshot, where } from 'firebase/firestore';
 import { FontAwesome5 } from '@expo/vector-icons';
 import BottomBar from '../BottomBar';
-
-
-const getRandomColor = () => {
-  const colors = [
-    '#FF5733', '#33FF57', '#3357FF', '#57FF33', '#FF33A6',
-    '#FF9F33', '#9F33FF', '#33FF9F', '#FF33FF', '#33FFF9'
-  ];
-  const randomIndex = Math.floor(Math.random() * colors.length);
-  return colors[randomIndex];
-};
 
 const formatDate = (timestamp) => {
   const now = new Date();
@@ -32,8 +22,7 @@ const formatDate = (timestamp) => {
 } else {
   return `${seconds} seconds ago`;
 }
-
-};
+}
 
 const Feed = ({ navigation }) => {
   const [userName, setUserName] = useState('');
@@ -51,13 +40,13 @@ const Feed = ({ navigation }) => {
     const fetchCurrentUser = async () => {
       if (currentUser) {
         const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setUserName(`${(userData.name || 'Anonymous')} ${(userData.surname || '')}`.trim());
+       if (userDoc.exists()) {
+  const userData = userDoc.data();
+  setUserName(`${(userData.name || 'Anonymous')} ${(userData.surname || '')}`.trim());
+} else {
+  setUserName(currentUser.displayName || 'Anonymous');
+}
 
-        } else {
-          setUserName(currentUser.displayName || 'Anonymous');
-        }
       }
     };
     fetchCurrentUser();
@@ -75,55 +64,89 @@ const Feed = ({ navigation }) => {
     return () => unsubscribeUsers();
   }, [currentUser]);
 
-  // Real-time fetching posts of followed users (and current user)
+
+
+
+
+
   useEffect(() => {
     if (!currentUser) return;
-
+  
     const followersQuery = query(
       collection(db, 'followers'),
       where('followerID', '==', currentUser.uid),
       where('following', '==', true)
     );
-
-    const unsubscribeFollowers = onSnapshot(followersQuery, (snapshot) => {
+  
+    const unsubscribeFollowers = onSnapshot(followersQuery, async (snapshot) => {
       const followedUserIds = snapshot.docs.map((doc) => doc.data().followedID);
-      followedUserIds.push(currentUser.uid); // Include the current user's posts
-
+      followedUserIds.push(currentUser.uid); // Inclure les posts de l'utilisateur actuel
+  
       if (followedUserIds.length > 0) {
         const postsQuery = query(
           collection(db, 'posts'),
           where('userId', 'in', followedUserIds)
         );
-
+  
         const unsubscribePosts = onSnapshot(postsQuery, (snapshot) => {
           const postsData = snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
-
+  
           const userMap = {};
           users.forEach((user) => {
             userMap[user._id] = `${(user.name || 'Anonymous')} ${(user.surname || '')}`.trim();
           });
-
+  
           if (currentUser) {
             userMap[currentUser.uid] = userName || 'Me';
           }
-
+  
+          // Enrichir les posts avec des données supplémentaires
           const enrichedPosts = postsData.map((post) => ({
             ...post,
             authorName: userMap[post.userId] || 'Anonymous',
             timeAgo: formatDate(post.timestamp),
           }));
-
-          const sortedPosts = enrichedPosts.sort((a, b) => b.timestamp.seconds - a.timestamp.seconds);
-
+  
+          // Ajouter des écouteurs en temps réel pour les likes
+          const updatedPosts = enrichedPosts.map((post) => {
+            const likeDocRef = doc(db, 'likes', post.id);
+  
+            // Écouter les mises à jour en temps réel du document de like
+            const unsubscribeLikes = onSnapshot(likeDocRef, (likeDoc) => {
+              if (likeDoc.exists()) {
+                const likeData = likeDoc.data();
+                setMappedPosts((prevPosts) =>
+                  prevPosts.map((p) =>
+                    p.id === post.id
+                      ? {
+                          ...p,
+                          likeCount: likeData.likeCount || 0,  // Nombre de likes
+                          isLikedByCurrentUser: likeData.likers?.includes(currentUser?.uid),  // Vérifier si l'utilisateur a aimé
+                        }
+                      : p
+                  )
+                );
+              }
+            });
+  
+            // Retourner la fonction d'abonnement pour le nettoyage
+            post.unsubscribeLikes = unsubscribeLikes;
+            return post;
+          });
+  
+          // Trier les posts par timestamp
+          const sortedPosts = updatedPosts.sort((a, b) => b.timestamp.seconds - a.timestamp.seconds);
           setMappedPosts(sortedPosts);
         });
-
-        return () => unsubscribePosts(); // Clean up the listener
+  
+        return () => unsubscribePosts(); // Nettoyer l'écouteur des posts
       }
     });
-
-    return () => unsubscribeFollowers(); // Clean up the listener
+  
+    return () => unsubscribeFollowers(); // Nettoyer l'écouteur des abonnés
   }, [currentUser, users, userName]);
+  
+
 
   const handlePost = async () => {
     if (newPost.trim()) {
@@ -149,6 +172,106 @@ const Feed = ({ navigation }) => {
       }
     }
   };
+
+
+
+
+
+  const handleLike = async (postId) => {
+    if (!currentUser) return;
+    const likeDocRef = doc(db, 'likes', postId);  // Utilisation du postId comme identifiant du document
+  
+    try {
+      const likeDoc = await getDoc(likeDocRef);
+      
+      if (likeDoc.exists()) {
+        const data = likeDoc.data();
+        const currentLikes = data.likers || [];
+        
+        if (currentLikes.includes(currentUser.uid)) {
+          // L'utilisateur a déjà liké, on le retire
+          await updateDoc(likeDocRef, {
+            likers: arrayRemove(currentUser.uid),
+            likeCount: currentLikes.length - 1,  // Mise à jour du likeCount
+          });
+        } else {
+          // L'utilisateur n'a pas liké, on l'ajoute
+          await updateDoc(likeDocRef, {
+            likers: arrayUnion(currentUser.uid),
+            likeCount: currentLikes.length + 1,  // Mise à jour du likeCount
+          });
+        }
+      } else {
+        // Créer un nouveau document pour ce post
+        await setDoc(likeDocRef, {
+          likers: [currentUser.uid],
+          likeCount: 1,  // Premier like
+          postId: postId,  // Associer l'ID du post
+        });
+      }
+    } catch (error) {
+      console.error('Erreur lors de la gestion du like :', error);
+    }
+  };
+
+  const handleLogOut = async () => {
+    try {
+      await signOut(auth);  // Déconnecter l'utilisateur
+      navigation.replace('AuthScreen');  // Rediriger vers l'écran de connexion après la déconnexion
+    } catch (error) {
+      console.error('Error signing out:', error.message);
+    }
+  };
+
+
+  
+
+  useEffect(() => {
+    if (!currentUser) return;
+  
+    const unsubscribeFunctions = []; // Stocker les fonctions de désabonnement
+  
+    const fetchCommentsCount = async () => {
+      mappedPosts.forEach((post) => {
+        // Requête Firebase pour récupérer les commentaires liés au post
+        const commentsQuery = query(
+          collection(db, 'comments'),
+          where('postID', '==', post.id) // Assurez-vous que le champ correspond exactement à votre structure Firebase
+        );
+  
+        // Écoute en temps réel des changements sur les commentaires
+        const unsubscribe = onSnapshot(commentsQuery, (snapshot) => {
+          setMappedPosts((prevPosts) =>
+            prevPosts.map((p) =>
+              p.id === post.id
+                ? {
+                    ...p,
+                    commentCount: snapshot.size, // Mettre à jour le compteur
+                  }
+                : p
+            )
+          );
+        });
+  
+        // Ajouter la fonction de désabonnement à la liste
+        unsubscribeFunctions.push(unsubscribe);
+      });
+    };
+  
+    fetchCommentsCount();
+  
+    return () => {
+      // Nettoyer tous les écouteurs lors du démontage du composant
+      unsubscribeFunctions.forEach((unsubscribe) => unsubscribe());
+    };
+  }, [currentUser, mappedPosts]);
+  
+
+
+  
+
+
+
 
   // Fetch unread messages count
   useEffect(() => {
@@ -203,9 +326,9 @@ const Feed = ({ navigation }) => {
           horizontal
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
-            <TouchableOpacity onPress={() => navigation.navigate('FriendScreen', { user: item })}>
+            <TouchableOpacity onPress={() => navigation.navigate('Chat', { user: item })}>
               <View style={styles.userCard}>
-                <View style={[styles.bubble, { backgroundColor: getRandomColor() }]}>
+              <View style={[styles.bubble, { backgroundColor: item.color  || '#D3D3D3'  }]}>
                   <Text style={styles.bubbleText}>
                     {item.name ? item.name.charAt(0).toUpperCase() : 'A'}
                   </Text>
@@ -223,7 +346,7 @@ const Feed = ({ navigation }) => {
       <View style={styles.postSection}>
         <TextInput
           style={[styles.postInput, { height: textInputHeight }]}
-          placeholder={`Hi ${userName || 'User'}, What’s happening?`}
+placeholder={`Hi ${userName || 'User'}, What’s happening?`}
   // Dynamic placeholder
           value={newPost}
           onChangeText={setNewPost}
@@ -280,16 +403,27 @@ const Feed = ({ navigation }) => {
             <View style={styles.postActions}>
 
 
-              <TouchableOpacity style={styles.actionItem}>
-                <FontAwesome5 name="thumbs-up" size={24} color="#377DFF" />
-                <Text style={styles.iconLabel}>Like</Text>
-              </TouchableOpacity>
+            <TouchableOpacity
+          style={styles.actionItem}
+          onPress={() => handleLike(item.id)}
+        >
+          <FontAwesome5
+            name={item.isLikedByCurrentUser ? 'thumbs-up' : 'thumbs-up'}
+            size={24}
+            color={item.isLikedByCurrentUser ? '#FF87A0' : '#377DFF'}          />
+          <Text style={styles.iconLabel}>{item.likeCount} Likes</Text> {/* Affichage du nombre de likes */}
+        </TouchableOpacity>
 
 
-              <TouchableOpacity style={styles.actionItem}>
-                <FontAwesome5 name="comment" size={24} color="#377DFF" />
-                <Text style={styles.iconLabel}>Comment</Text>
-              </TouchableOpacity>
+        <TouchableOpacity
+  style={styles.actionItem}
+  onPress={() => navigation.navigate('Comment', { postId: item.id })}
+>
+  <FontAwesome5 name="comment" size={24} color="#377DFF" />
+  <Text style={styles.iconLabel}>
+    {item.commentCount || 0} Comments
+  </Text>
+</TouchableOpacity>
 
 
 
@@ -298,7 +432,10 @@ const Feed = ({ navigation }) => {
                 <Text style={styles.iconLabel}>Share</Text>
               </TouchableOpacity>
 
+              
+
             </View>
+            
           </View>
         )}
       />
@@ -529,9 +666,21 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
    
   },
+  postActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  actionItem: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  iconLabel: {
+    marginLeft: 5,
+    fontSize: 12,
+  },
+
 
 });
 
-export default Feed;
 
-
+export default Feed ;

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker'; // Importation du module pour choisir ou prendre une photo
+import { db, auth } from '../../../backend/firebaseConfig'; // Importez votre configuration Firebase
+import { doc, setDoc } from 'firebase/firestore'; // Importez les fonctions nécessaires pour Firestore
 
 const Photo3 = ({ navigation }) => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -22,8 +24,19 @@ const Photo3 = ({ navigation }) => {
     }
   };
 
-  const handleNext = () => {
-    navigation.navigate('AccountVerification'); // Modifier selon la navigation suivante
+  // Ajouter un champ 'color' dans Firestore pour l'utilisateur
+  const handleNext = async () => {
+    try {
+      const userId = 'USER_ID'; // Remplacez par l'ID de l'utilisateur (vous pouvez le récupérer avec Firebase Authentication)
+      const userRef = doc(db, 'users', auth.currentUser.uid); // Référence à l'utilisateur dans la collection 'users'
+      
+      // Ajouter ou mettre à jour le champ 'color' dans le document utilisateur
+      await setDoc(userRef, { color: '#FF87AB'}, { merge: true });
+
+      navigation.navigate('AccountVerification'); // Modifier selon la navigation suivante
+    } catch (error) {
+      console.error("Error updating document: ", error);
+    }
   };
 
   return (
@@ -32,7 +45,7 @@ const Photo3 = ({ navigation }) => {
       <View style={styles.headerContainer}>
         <Image source={require('../../images/image 15.png')} style={styles.image15Icon} />
         <Text style={styles.profileText}>
-          Pro<Text style={styles.proText}>file</Text>
+          Pro<Text style={styles.proText}>Pro</Text>
         </Text>
       </View>
 
@@ -74,6 +87,8 @@ const Photo3 = ({ navigation }) => {
     </ScrollView>
   );
 };
+
+
 
 const styles = StyleSheet.create({
   container: {
@@ -126,7 +141,7 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 75, // Rend l'image circulaire
     borderWidth: 5,
-    borderColor: '#FF00FF', // Bordure en couleur #FFB400
+    borderColor: '#FF87AB', // Bordure en couleur #FFB400
     resizeMode: 'cover', // Couvre le cercle
   },
   orLetsTake: {

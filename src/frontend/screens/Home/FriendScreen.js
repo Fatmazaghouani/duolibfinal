@@ -30,19 +30,20 @@ const FriendScreen = ({ route }) => {
 
   useEffect(() => {
     if (user) {
-      setUserEmail(user.email || 'Non renseigné');
-      setUserName(user.name || 'Utilisateur Anonyme');
-      setUserBio({
-        city: user.city || 'Non renseignée',
-        country: user.country || 'Non renseigné',
-        dateOfBirth: user.dateOfBirth || 'Non renseignée',
-        gender: user.gender || 'Non renseigné',
-        diseases: Object.keys(user.diseaseData || {}).filter((key) => user.diseaseData[key] === true),
-        duo: user.duo || null,
-        bio: user.bio || 'No Bio Mentionned',
-        rareDiseases: user.rareDiseases || [],
-        cancers: user.cancers || [],
-      });
+      setUserName(user?.name || 'Utilisateur Anonyme');
+      setUserEmail(user?.email || 'Non renseigné');
+setUserBio({
+  city: user?.city || 'Non renseignée',
+  country: user?.country || 'Non renseigné',
+  dateOfBirth: user?.dateOfBirth || 'Non renseignée',
+  gender: user?.gender || 'Non renseigné',
+  diseases: Object.keys(user?.diseaseData || {}).filter((key) => user?.diseaseData[key] === true),
+  duo: user?.duo || null,
+  bio: user?.bio || 'No Bio Mentioned',
+  rareDiseases: user?.rareDiseases || [],
+  cancers: user?.cancers || [],
+});
+
     }
   }, [user]);
 
@@ -95,7 +96,8 @@ const FriendScreen = ({ route }) => {
 
         <View style={styles.bioContainer}>
           <View style={styles.nameContainer}>
-            <Text style={styles.nameText}>{userName} {user.surname || ''}</Text>
+            <Text style={styles.nameText}>{userName} {user?.surname || ''}</Text>
+
             <Text style={styles.bioText}>{userBio.bio}</Text>
           </View>
 
@@ -372,7 +374,7 @@ const styles = StyleSheet.create({
     postAuthor: {
       fontSize: 18,
       fontWeight: 'bold',
-      color: '#377DFF',
+      color: 'white',
     },
     postTimestamp: {
       fontSize: 12,

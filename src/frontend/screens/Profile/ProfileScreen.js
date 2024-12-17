@@ -19,6 +19,7 @@ const ProfileScreen = () => {
   const [userEmail, setUserEmail] = useState('');
   const [imageUri, setImageUri] = useState(null);
   const [feeling, setFeeling] = useState(null);
+  const [color, setColor] = useState('#D3D3D3');
   const [userBio, setUserBio] = useState({
     city: '',
     country: '',
@@ -57,6 +58,7 @@ const ProfileScreen = () => {
               rareDiseases: userData.rareDiseases || [], // Récupérer les maladies rares
               cancers: userData.cancers || [], // Récupérer les cancers
             });
+            setColor(userData.color  || '#D3D3D3');
           } else {
             console.log('Utilisateur non trouvé !');
           }
@@ -158,11 +160,11 @@ const ProfileScreen = () => {
       </View>
 
       <View style={styles.imageContainer}>
-        <Image source={require('../../images/image 109.png')} style={styles.image109Icon} />
-        <View style={styles.initialCircle}>
-          <Text style={styles.initialText}>{firstLetter}</Text>
+          <Image source={require('../../images/image 109.png')} style={[styles.image109Icon, { borderColor: color }]} /> {/* Applique la couleur à l'image */}
+          <View style={[styles.initialCircle, { backgroundColor: color   }]}> {/* Applique la couleur au cercle */}
+            <Text style={styles.initialText}>{firstLetter}</Text>
+          </View>
         </View>
-      </View>
 
       <View style={styles.bioContainer}>
         <View style={styles.nameContainer}>

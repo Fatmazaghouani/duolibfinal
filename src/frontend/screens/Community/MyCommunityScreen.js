@@ -3,17 +3,21 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, ActivityIndi
 import { getAuth } from "firebase/auth";
 import { db } from '../../../backend/firebaseConfig';
 import { collection, query, where, setDoc, doc, updateDoc, onSnapshot } from "firebase/firestore";
+import { useNavigation } from '@react-navigation/native';
 
 const MyCommunityScreen = () => {
-  const [users, setUsers] = useState([]); 
+  const [users, setUsers] = useState([]);
   const [followingStatus, setFollowingStatus] = useState({
     followedUsers: [],
     followersUsers: []
-  }); 
-  const [selectedTab, setSelectedTab] = useState('peopleIFollow'); 
-  const [loading, setLoading] = useState(false); 
+  });
+  const [selectedTab, setSelectedTab] = useState('peopleIFollow');
+  const [loading, setLoading] = useState(false);
   const auth = getAuth();
   const currentUser = auth.currentUser;
+
+const navigation = useNavigation();
+
 
   // Fetch users and follow data in real-time
   useEffect(() => {
@@ -118,11 +122,17 @@ const MyCommunityScreen = () => {
     const showCancerIcon = item.diseaseData?.cancer;
     const showRareDiseaseIcon = item.diseaseData?.rareDisease;
 
+    // Dynamically set the avatar background color based on the user's color field
+    const avatarBackgroundColor = item.color || '#FF87A0'; // Default color if 'color' is not set
+
     return (
       <View style={styles.userCard}>
-        <View style={styles.avatarContainer}>
+        <TouchableOpacity
+          style={[styles.avatarContainer, { backgroundColor: avatarBackgroundColor || '#D3D3D3' }]}
+          onPress={() => navigation.navigate('FriendScreen', { user: item.id})}  // Navigate to FriendScreen
+        >
           <Text style={styles.avatarText}>{item.name ? item.name.charAt(0) : '?'}</Text>
-        </View>
+        </TouchableOpacity>
 
         <View style={styles.userInfo}>
           <Text style={styles.userName}>{item.name}</Text>
@@ -134,14 +144,15 @@ const MyCommunityScreen = () => {
               <Image source={require('../../images/rare.png')} style={styles.diseaseIcon} />
             )}
           </View>
-  </View>
+        </View>
+
         <View style={styles.buttonsContainer}>
           {!isFollowing && (
             <TouchableOpacity style={styles.followButton} onPress={() => handleFollow(item.id)}>
               <Text style={styles.followText}>{isFollower ? "Follow Back" : "Follow"}</Text>
             </TouchableOpacity>
           )}
-  
+
           {isFollowing && (
             <>
               <TouchableOpacity style={styles.unfollowButton} onPress={() => handleUnfollow(item.id)}>
@@ -153,37 +164,34 @@ const MyCommunityScreen = () => {
             </>
           )}
         </View>
-        
       </View>
-      
     );
   };
-  
-  return (
 
+  return (
     <View style={styles.container}>
       <Text style={styles.header}>My Community</Text>
 
       <View style={styles.tabsContainerColumn}>
-  <TouchableOpacity
-    style={[styles.tab, selectedTab === 'followSuggestions' && styles.activeTab]}
-    onPress={() => setSelectedTab('followSuggestions')}
-  >
-    <Text style={[styles.tabText, selectedTab === 'followSuggestions' && styles.activeTabText]}>Follow Suggestions</Text>
-  </TouchableOpacity>
-  <TouchableOpacity
-    style={[styles.tab, selectedTab === 'peopleIFollow' && styles.activeTab]}
-    onPress={() => setSelectedTab('peopleIFollow')}
-  >
-    <Text style={[styles.tabText, selectedTab === 'peopleIFollow' && styles.activeTabText]}>People I Follow</Text>
-  </TouchableOpacity>
-  <TouchableOpacity
-    style={[styles.tab, selectedTab === 'followers' && styles.activeTab]}
-    onPress={() => setSelectedTab('followers')}
-  >
-    <Text style={[styles.tabText, selectedTab === 'followers' && styles.activeTabText]}>Followers</Text>
-  </TouchableOpacity>
-</View>
+        <TouchableOpacity
+          style={[styles.tab, selectedTab === 'followSuggestions' && styles.activeTab]}
+          onPress={() => setSelectedTab('followSuggestions')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'followSuggestions' && styles.activeTabText]}>Follow Suggestions</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, selectedTab === 'peopleIFollow' && styles.activeTab]}
+          onPress={() => setSelectedTab('peopleIFollow')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'peopleIFollow' && styles.activeTabText]}>People I Follow</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, selectedTab === 'followers' && styles.activeTab]}
+          onPress={() => setSelectedTab('followers')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'followers' && styles.activeTabText]}>Followers</Text>
+        </TouchableOpacity>
+      </View>
 
       {loading ? (
         <ActivityIndicator size="large" color="#007bff" />
@@ -220,17 +228,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#333',
   },
-  tabsContainerRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+  tabsContainerColumn: {
+    flexDirection: 'column',
+    alignItems: 'center',
     marginBottom: 20,
   },
   tab: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    marginHorizontal: 5,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginVertical: 5,
     borderRadius: 20,
     backgroundColor: '#e0e0e0',
+    width: '80%',
+    alignItems: 'center',
   },
   activeTab: {
     backgroundColor: '#FF87A0',
@@ -254,12 +264,10 @@ const styles = StyleSheet.create({
     elevation: 2,
     alignItems: 'center',
   },
-
   avatarContainer: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#FF87A0',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 15,
@@ -294,24 +302,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderRadius: 20,
   },
-  followBackButton: {
-    backgroundColor: '#7FBF00', // Green color for Follow Back button
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 20,
-  },
   followText: {
     color: '#fff',
-  },
-  disabledButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 20,
-    marginRight: 10,
-  },
-  followingText: {
-    color: '#666',
   },
   unfollowButton: {
     paddingHorizontal: 15,
@@ -322,7 +314,6 @@ const styles = StyleSheet.create({
   unfollowText: {
     color: '#fff',
   },
-
   followingButton: {
     backgroundColor: '#d1ecf1',
     marginLeft: 10,
@@ -334,34 +325,6 @@ const styles = StyleSheet.create({
     color: '#0c5460',
     fontWeight: '600',
   },
-  tabsContainerColumn: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  tab: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    marginVertical: 5, // Espacement entre les boutons
-    borderRadius: 20,
-    backgroundColor: '#e0e0e0',
-    width: '80%', // Ajuste la largeur des boutons
-    alignItems: 'center', // Centre le texte
-  },
-  activeTab: {
-    backgroundColor: '#FF87A0',
-  },
-  tabText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  activeTabText: {
-    color: '#fff',
-  },
 });
 
 export default MyCommunityScreen;
-
-
-
-

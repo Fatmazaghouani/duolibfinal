@@ -60,11 +60,17 @@ import VerificationScreen from './frontend/screens/ResetPassword/VerificationScr
 import CreatePasswordScreen from './frontend/screens/ResetPassword/CreatePasswordScreen';
 import PasswordSuccessScreen from './frontend/screens/ResetPassword/PasswordSuccessScreen';
 import FriendScreen from './frontend/screens/Home/FriendScreen';
+import Comment from './frontend/screens/Home/Comment';
+
 import UnderConstructionScreen from './frontend/screens/UnderConstructionScreen';  
+
+
+
 
 const Stack = createStackNavigator();
 
 const App = () => {
+  
  
   return (
     <NavigationContainer>
@@ -128,6 +134,9 @@ const App = () => {
         <Stack.Screen name="PasswordSuccessScreen" component={PasswordSuccessScreen} />
         <Stack.Screen name="FriendScreen" component={FriendScreen} />
         <Stack.Screen name="UnderConstructionScreen" component={UnderConstructionScreen} />
+        <Stack.Screen name="Comment" component={Comment} />
+
+
         
 
 

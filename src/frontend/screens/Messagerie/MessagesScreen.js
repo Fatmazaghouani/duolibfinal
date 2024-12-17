@@ -150,7 +150,7 @@ const MessagesScreen = ({ navigation }) => {
               navigation.navigate('Chat', { user: item });
             }}
           >
-            <View style={[styles.avatar, { backgroundColor: getRandomColor() }]}>
+            <View style={[styles.avatar, { backgroundColor: item.color  || '#D3D3D3'  }]}>
               <Text style={styles.avatarText}>{getInitials(item.name)}</Text>
             </View>
             <View style={styles.conversationDetails}>
@@ -201,15 +201,6 @@ const getInitials = (name) => {
   const words = name.split(' ');
   const initials = words.map((word) => word.charAt(0).toUpperCase());
   return initials.join('');
-};
-
-const getRandomColor = () => {
-  const letters = '0123456789ABCDEF';
-  let color = '#';
-  for (let i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)];
-  }
-  return color;
 };
 
 const styles = StyleSheet.create({
