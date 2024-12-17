@@ -326,7 +326,7 @@ const Feed = ({ navigation }) => {
           horizontal
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
-            <TouchableOpacity onPress={() => navigation.navigate('Chat', { user: item })}>
+            <TouchableOpacity onPress={() => navigation.navigate('FriendScreen', { user: item })}>
               <View style={styles.userCard}>
               <View style={[styles.bubble, { backgroundColor: item.color  || '#D3D3D3'  }]}>
                   <Text style={styles.bubbleText}>

@@ -15,9 +15,11 @@ const MyCommunityScreen = () => {
   const [loading, setLoading] = useState(false);
   const auth = getAuth();
   const currentUser = auth.currentUser;
+  const navigation = useNavigation();
 
-const navigation = useNavigation();
-
+  const handleNavigateToFriend = (user) => {
+    navigation.navigate('FriendScreen', { user });
+  };
 
   // Fetch users and follow data in real-time
   useEffect(() => {
@@ -103,6 +105,7 @@ const navigation = useNavigation();
       setLoading(true);
       const followersRef = collection(db, "followers");
       const docID = `${currentUser.uid}_${followedID}`;
+
       const docRef = doc(followersRef, docID);
 
       await updateDoc(docRef, { following: false });
@@ -128,10 +131,13 @@ const navigation = useNavigation();
     return (
       <View style={styles.userCard}>
         <TouchableOpacity
-          style={[styles.avatarContainer, { backgroundColor: avatarBackgroundColor || '#D3D3D3' }]}
-          onPress={() => navigation.navigate('FriendScreen', { user: item.id})}  // Navigate to FriendScreen
+          style={[styles.avatarContainer, { backgroundColor: avatarBackgroundColor }]}
+          onPress={() => handleNavigateToFriend(item)} // Fonction appelée pour naviguer
         >
-          <Text style={styles.avatarText}>{item.name ? item.name.charAt(0) : '?'}</Text>
+          {/* Afficher l'initiale du nom ou un '?' si le nom est absent */}
+          <Text style={styles.avatarText}>
+            {item.name ? item.name.charAt(0).toUpperCase() : '?'}
+          </Text>
         </TouchableOpacity>
 
         <View style={styles.userInfo}>

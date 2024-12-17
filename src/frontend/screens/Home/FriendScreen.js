@@ -30,20 +30,19 @@ const FriendScreen = ({ route }) => {
 
   useEffect(() => {
     if (user) {
-      setUserName(user?.name || 'Utilisateur Anonyme');
-      setUserEmail(user?.email || 'Non renseigné');
-setUserBio({
-  city: user?.city || 'Non renseignée',
-  country: user?.country || 'Non renseigné',
-  dateOfBirth: user?.dateOfBirth || 'Non renseignée',
-  gender: user?.gender || 'Non renseigné',
-  diseases: Object.keys(user?.diseaseData || {}).filter((key) => user?.diseaseData[key] === true),
-  duo: user?.duo || null,
-  bio: user?.bio || 'No Bio Mentioned',
-  rareDiseases: user?.rareDiseases || [],
-  cancers: user?.cancers || [],
-});
-
+      setUserEmail(user.email || 'Non renseigné');
+      setUserName(user.name || 'Utilisateur Anonyme');
+      setUserBio({
+        city: user.city || 'Non renseignée',
+        country: user.country || 'Non renseigné',
+        dateOfBirth: user.dateOfBirth || 'Non renseignée',
+        gender: user.gender || 'Non renseigné',
+        diseases: Object.keys(user.diseaseData || {}).filter((key) => user.diseaseData[key] === true),
+        duo: user.duo || null,
+        bio: user.bio || 'No Bio Mentionned',
+        rareDiseases: user.rareDiseases || [],
+        cancers: user.cancers || [],
+      });
     }
   }, [user]);
 
@@ -96,8 +95,7 @@ setUserBio({
 
         <View style={styles.bioContainer}>
           <View style={styles.nameContainer}>
-            <Text style={styles.nameText}>{userName} {user?.surname || ''}</Text>
-
+            <Text style={styles.nameText}>{userName} {user.surname || ''}</Text>
             <Text style={styles.bioText}>{userBio.bio}</Text>
           </View>
 
@@ -166,9 +164,18 @@ setUserBio({
 
             <View style={styles.buttonContainer}>
               {showIntro ? (
-                <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-                  <Text style={styles.nextButtonText}>Next</Text>
-                </TouchableOpacity>
+                <>
+                  <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+                    <Text style={styles.nextButtonText}>Next</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.contactButton}
+                    onPress={() => navigation.navigate('Chat', { user: user })}
+                  >
+                    <Text style={styles.nextButtonText}>Contact</Text>
+                  </TouchableOpacity>
+                </>
               ) : (
                 <TouchableOpacity style={styles.nextButton} onPress={handleBack}>
                   <Text style={styles.nextButtonText}>Back</Text>
@@ -192,17 +199,15 @@ setUserBio({
                   <Text style={styles.iconLabel}>Like</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionItem}>
-                  <FontAwesome5 name="share" size={24} color="#377DFF" />
-                  <Text style={styles.iconLabel}>Share</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.actionItem}>
                   <FontAwesome5 name="comment" size={24} color="#377DFF" />
                   <Text style={styles.iconLabel}>Comment</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionItem}>
-                  <FontAwesome5 name="paper-plane" size={24} color="#377DFF" />
-                  <Text style={styles.iconLabel}>Send</Text>
+                  <FontAwesome5 name="share" size={24} color="#377DFF" />
+                  <Text style={styles.iconLabel}>Share</Text>
                 </TouchableOpacity>
+                
+              
               </View>
             </View>
           ))
@@ -211,15 +216,14 @@ setUserBio({
         )}
 
         {/* Ajouter le BottomBar ici */}
-        
       </ScrollView>
       <View style={styles.bottomBarContainer}>
         <BottomBar />
       </View>
-     
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   bottomBarContainer: {
     position: 'absolute',
@@ -227,38 +231,38 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
   },
-  
-    container: {
-      flex: 1,
-      backgroundColor: '#f9f9f9',
-    },
-    scrollContainer: {
-      paddingBottom: 20,
-    },
-    header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      height: 50,
-      borderBottomWidth: 1,
-      borderBottomColor: '#E0E0E0',
-      marginBottom: 10,
-      paddingHorizontal: 10,
-    },
-    logo: {
-      width: 30,
-      height: 30,
-    },
-    searchInput: {
-      flex: 1,
-      height: 40,
-      borderColor: '#ddd',
-      borderWidth: 1,
-      borderRadius: 20,
-      paddingLeft: 15,
-      marginHorizontal: 10,
-    },
-    imageContainer: {
+
+  container: {
+    flex: 1,
+    backgroundColor: '#f9f9f9',
+  },
+  scrollContainer: {
+    paddingBottom: 20,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    height: 50,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    marginBottom: 10,
+    paddingHorizontal: 10,
+  },
+  logo: {
+    width: 30,
+    height: 30,
+  },
+  searchInput: {
+    flex: 1,
+    height: 40,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingLeft: 15,
+    marginHorizontal: 10,
+  },
+  imageContainer: {
     position: 'relative',
     marginTop: 20,
     alignItems: 'center',
@@ -267,139 +271,157 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 112,
   },
-    initialCircle: {
+  initialCircle: {
     position: 'absolute',
     bottom: -20,
     left: 20,
     backgroundColor: '#377DFF',
-    width: 70, // Augmentez la largeur de la bulle
-    height: 70, // Augmentez la hauteur de la bulle
-    borderRadius: 35, 
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     justifyContent: 'center',
     alignItems: 'center',
   },
-    initialText: {
-      color: 'white',
-      fontSize: 24,
-      fontWeight: 'bold',
-    },
-    bioContainer: {
-      paddingHorizontal: 20,
-    },
-    nameContainer: {
-      alignItems: 'center',
-      marginBottom: 20,
-    },
-    nameText: {
-      fontSize: 24,
-      fontWeight: 'bold',
-    },
-    bioText: {
-      fontSize: 16,
-      color: '#555',
-    },
-    bioDetailsContainer: {
-      marginBottom: 20,
-      backgroundColor: '#fff'
-    },
-    introText: {
-      fontSize: 22,
-      fontWeight: 'bold',
-      color: '#37CDFF',
-      marginBottom: 10,
-    },
-    bioItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 10,
-    },
-    maladieSection: {
-      padding: 10,
-      backgroundColor: '#f1f1f1',
-      borderRadius: 10,
-      marginBottom: 20,
-    },
-    iconWithLabel: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 10,
-    },
-    icon: {
-      width: 30,
-      height: 30,
-      marginRight: 10,
-    },
-    maladieText: {
-      fontSize: 18,
-      fontWeight: 'bold',
-    },
-    diseaseItem: {
-      fontSize: 16,
-      color: '#555',
-      marginBottom: 5,
-    },
-    noDataText: {
-      fontSize: 16,
-      color: '#999',
-    },
-    buttonContainer: {
-      marginTop: 20,
-      alignItems: 'center',
-    },
-    nextButton: {
-      backgroundColor: '#FF87A0',
-      paddingVertical: 10,
-      paddingHorizontal: 30,
-      borderRadius: 20,
-    },
-    nextButtonText: {
-      color: 'white',
-      fontSize: 18,
-      fontWeight: 'bold',
-    },
-    latestPosts: {
-      fontSize: 22,
-      fontWeight: 'bold',
-      color: '#37CDFF',
-      marginBottom: 10,
-      marginLeft: 20,
-    },
-    postCard: {
-      backgroundColor: 'white',
-      marginBottom: 10,
-      borderRadius: 10,
-      padding: 15,
-      elevation: 2,
-    },
-    postAuthor: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      color: 'white',
-    },
-    postTimestamp: {
-      fontSize: 12,
-      color: '#888',
-      marginBottom: 10,
-    },
-    postText: {
-      fontSize: 16,
-      color: '#555',
-      marginBottom: 10,
-    },
-    postActions: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
-    actionItem: {
-      alignItems: 'center',
-      flexDirection: 'row',
-    },
-    iconLabel: {
-      fontSize: 12,
-      color: '#377DFF',
-      marginLeft: 5,
-    },
-    
-  });
+  initialText: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  bioContainer: {
+    paddingHorizontal: 20,
+  },
+  nameContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  nameText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  bioText: {
+    fontSize: 16,
+    color: '#555',
+  },
+  introText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#37CDFF',
+    marginBottom: 10,
+  },
+  
+  bioItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  maladieSection: {
+    padding: 10,
+    backgroundColor: '#f1f1f1',
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  iconWithLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  icon: {
+    width: 30,
+    height: 30,
+    marginRight: 10,
+  },
+  maladieText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  diseaseItem: {
+    fontSize: 16,
+    color: '#555',
+    marginBottom: 5,
+  },
+  noDataText: {
+    fontSize: 16,
+    color: '#999',
+  },
+  buttonContainer: {
+    marginTop: 20,
+    flexDirection: 'row',        // Ajout de flexDirection: 'row' pour aligner les éléments horizontalement
+    justifyContent: 'space-between',  // Espace entre les boutons
+    width: '100%',              // S'assurer que l'espace est utilisé correctement
+    paddingHorizontal: 20,      // Un petit espacement sur les côtés
+    alignItems: 'center',       // Alignement vertical centré
+  },
+  
+  nextButton: {
+    backgroundColor: '#FF87A0',
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 20,
+  },
+  nextButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  contactButton: {
+    backgroundColor: '#FF87A0',
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 20,
+  },
+  latestPosts: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#37CDFF',
+    marginBottom: 10,
+    marginLeft: 20,
+  },
+  postCard: {
+    backgroundColor: 'white',
+    marginBottom: 10,
+    borderRadius: 10,
+    padding: 15,
+    elevation: 2,
+  },
+  postActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  actionItem: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  iconLabel: {
+    fontSize: 12,
+    color: '#377DFF',
+    marginLeft: 5,
+  },
+  postAuthor: {
+    fontSize: 18,
+    fontWeight: 'bold',      // Rendre le nom en gras
+    color: '#333',           // Couleur sombre pour une bonne lisibilité
+    marginBottom: 5,         // Espacement en dessous du nom
+    textAlign: 'left',       // Alignement à gauche
+    letterSpacing: 0.5,      // Espacement léger entre les lettres
+  },
+  postTimestamp: {
+    fontSize: 12,            // Taille de police petite pour une date discrète
+    color: '#888',           // Couleur gris clair pour un effet subtil
+    marginBottom: 10,        // Un petit espace sous la date
+    fontStyle: 'italic',     // Texte en italique pour un effet visuel distinct
+  },
+  postText: {
+    fontSize: 16,             // Taille de police confortable pour le texte principal
+    color: '#555',            // Une couleur de texte gris foncé, facile à lire
+    marginBottom: 10,         // Un petit espace sous le texte pour séparer les éléments
+    lineHeight: 22,           // Un interligne plus large pour améliorer la lisibilité
+    fontFamily: 'Arial',      // Choix de police simple et claire
+  }
+  
+
+
+  
+  
+});
 
 export default FriendScreen;
