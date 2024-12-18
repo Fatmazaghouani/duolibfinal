@@ -11,6 +11,7 @@ const FriendScreen = ({ route }) => {
   const [showMaladie, setShowMaladie] = useState(false);
   const [posts, setPosts] = useState([]);
   const [userEmail, setUserEmail] = useState('');
+  const [color, setColor] = useState('#D3D3D3');
   const [userBio, setUserBio] = useState({
     city: '',
     country: '',
@@ -43,6 +44,7 @@ const FriendScreen = ({ route }) => {
         rareDiseases: user.rareDiseases || [],
         cancers: user.cancers || [],
       });
+      setColor(user.color  || '#D3D3D3');
     }
   }, [user]);
 
@@ -88,7 +90,7 @@ const FriendScreen = ({ route }) => {
 
         <View style={styles.imageContainer}>
           <Image source={require('../../images/image 109.png')} style={styles.image109Icon} />
-          <View style={styles.initialCircle}>
+          <View style={[styles.initialCircle, { backgroundColor: color   }]}>
             <Text style={styles.initialText}>{firstLetter}</Text>
           </View>
         </View>
@@ -165,7 +167,10 @@ const FriendScreen = ({ route }) => {
             <View style={styles.buttonContainer}>
               {showIntro ? (
                 <>
-                  <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+                  <TouchableOpacity style={[styles.nextButton, { backgroundColor: color   }]} onPress={handleNext}>
+
+
+
                     <Text style={styles.nextButtonText}>Next</Text>
                   </TouchableOpacity>
 
@@ -177,7 +182,7 @@ const FriendScreen = ({ route }) => {
                   </TouchableOpacity>
                 </>
               ) : (
-                <TouchableOpacity style={styles.nextButton} onPress={handleBack}>
+                <TouchableOpacity style={[styles.nextButton, { backgroundColor: color   }]} onPress={handleBack}>
                   <Text style={styles.nextButtonText}>Back</Text>
                 </TouchableOpacity>
               )}
