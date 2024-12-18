@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-
 import Starting from './frontend/screens/Starting/Starting';
 import ChatbotScreen from './frontend/screens/Starting/ChatbotScreen';
 import OurPhilosophy from './frontend/screens/Starting/Our philosophy';
@@ -61,17 +60,12 @@ import CreatePasswordScreen from './frontend/screens/ResetPassword/CreatePasswor
 import PasswordSuccessScreen from './frontend/screens/ResetPassword/PasswordSuccessScreen';
 import FriendScreen from './frontend/screens/Home/FriendScreen';
 import Comment from './frontend/screens/Home/Comment';
-
 import UnderConstructionScreen from './frontend/screens/UnderConstructionScreen';  
-
-
-
 
 const Stack = createStackNavigator();
 
 const App = () => {
   
- 
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Starting">
@@ -140,7 +134,6 @@ const App = () => {
         
 
 
-       
       </Stack.Navigator>
     </NavigationContainer>
   );
