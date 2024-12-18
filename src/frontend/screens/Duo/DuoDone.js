@@ -10,7 +10,8 @@ const DuoDone = () => {
   const { userId, userName, userCountry, userAge, userDiseases } = route.params;
 
   const goToMessages = () => {
-    navigation.navigate('Messages');
+    // Naviguer vers l'écran de messages et passer l'ID de l'utilisateur ou d'autres informations
+    navigation.navigate('Messages', { userId, userName });
   };
 
   const goToDuoChange = () => {
@@ -38,10 +39,12 @@ const DuoDone = () => {
         <Text style={styles.title}>Details of {userName}</Text>
         <Text style={styles.additionalText}>
           You now have a Duo. {"\n"}
-          We will send hil/her a notification and your email address. {"\n\n"}
+          We will send him/her a notification and your email address. {"\n\n"}
           If it doesn't fit your choices, you can change it later. {"\n\n"}
           You can send him/her a message with this icon{' '}
-          <Icon name="chatbubble-outline" size={20} color="#00ADEF" /> {"\n\n"}
+          <TouchableOpacity onPress={goToMessages}>
+            <Icon name="chatbubble-outline" size={20} color="#00ADEF" />
+          </TouchableOpacity> {"\n\n"}
           or contact him/her at the following email address{' '}
           <Icon name="mail-outline" size={20} color="#00ADEF" />.
         </Text>
@@ -49,27 +52,27 @@ const DuoDone = () => {
         <Image source={require('../../images/rocket.png')} style={styles.userImage} />
         <Text style={styles.userName}>{userName}</Text>
         <Text style={styles.userDetails}>
-  Country: {userCountry} - Age: {userAge} - Disease: 
-  {userDiseases && userDiseases.cancer && (
-    <Text style={styles.diseaseText}>Cancer, </Text>
-  )}
-  {userDiseases && userDiseases.curedCancer && (
-    <Text style={styles.diseaseText}>Cured Cancer, </Text>
-  )}
-  {userDiseases && userDiseases.metastasisCancer && (
-    <Text style={styles.diseaseText}>Metastasis Cancer, </Text>
-  )}
-  {userDiseases && userDiseases.rareDisease && (
-    <Text style={styles.diseaseText}>Rare Disease, </Text>
-  )}
-  {!userDiseases || 
-    (!userDiseases.cancer && 
-    !userDiseases.curedCancer && 
-    !userDiseases.metastasisCancer && 
-    !userDiseases.rareDisease) && (
-    <Text style={styles.diseaseText}>No disease</Text>
-  )}
-</Text>
+          Country: {userCountry} - Age: {userAge} - Disease: 
+          {userDiseases && userDiseases.cancer && (
+            <Text style={styles.diseaseText}>Cancer, </Text>
+          )}
+          {userDiseases && userDiseases.curedCancer && (
+            <Text style={styles.diseaseText}>Cured Cancer, </Text>
+          )}
+          {userDiseases && userDiseases.metastasisCancer && (
+            <Text style={styles.diseaseText}>Metastasis Cancer, </Text>
+          )}
+          {userDiseases && userDiseases.rareDisease && (
+            <Text style={styles.diseaseText}>Rare Disease, </Text>
+          )}
+          {!userDiseases || 
+            (!userDiseases.cancer && 
+            !userDiseases.curedCancer && 
+            !userDiseases.metastasisCancer && 
+            !userDiseases.rareDisease) && (
+            <Text style={styles.diseaseText}>No disease</Text>
+          )}
+        </Text>
 
       </ScrollView>
 
@@ -83,35 +86,35 @@ const DuoDone = () => {
 
       {/* Footer dynamique */}
       <View style={styles.bottomBar}>
-      <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('Feed')}>
-        <FontAwesome5 name="home" size={20} color="#000" />
-        <Text style={styles.bottomText}>Feed</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('DuoStart')}>
-        <FontAwesome5 name="users" size={20} color="#000" />
-        <Text style={styles.bottomText}>Duo</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('MyCommunityScreen')}>
-        <FontAwesome5 name="globe" size={20} color="#000" />
-        <Text style={styles.bottomText}>Community</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('ForumScreen')}>
-        <FontAwesome5 name="comments" size={20} color="#000" />
-        <Text style={styles.bottomText}>Forum</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('Notification')}>
-        <FontAwesome5 name="bell" size={20} color="#000" />
-        <Text style={styles.bottomText}>Notifications</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('ProfileScreen')}>
-        <FontAwesome5 name="user" size={20} color="#000" />
-        <Text style={styles.bottomText}>Profile</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('Settings')}>
-        <FontAwesome5 name="cogs" size={20} color="#000" />
-        <Text style={styles.bottomText}>Settings</Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('Feed')}>
+          <FontAwesome5 name="home" size={20} color="#000" />
+          <Text style={styles.bottomText}>Feed</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('DuoStart')}>
+          <FontAwesome5 name="users" size={20} color="#000" />
+          <Text style={styles.bottomText}>Duo</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('MyCommunityScreen')}>
+          <FontAwesome5 name="globe" size={20} color="#000" />
+          <Text style={styles.bottomText}>Community</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('ForumScreen')}>
+          <FontAwesome5 name="comments" size={20} color="#000" />
+          <Text style={styles.bottomText}>Forum</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('Notification')}>
+          <FontAwesome5 name="bell" size={20} color="#000" />
+          <Text style={styles.bottomText}>Notifications</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('ProfileScreen')}>
+          <FontAwesome5 name="user" size={20} color="#000" />
+          <Text style={styles.bottomText}>Profile</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.bottomIcon} onPress={() => navigation.navigate('Settings')}>
+          <FontAwesome5 name="cogs" size={20} color="#000" />
+          <Text style={styles.bottomText}>Settings</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -185,33 +188,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#ddd',
-  },
-  footerItem: {
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 12,
-    color: '#777',
-  },
-  activeFooterText: {
-    color: '#00ADEF',
-    fontWeight: '600',
-  },
-  activeIndicator: {
-    width: 30,
-    height: 2,
-    backgroundColor: '#00ADEF',
-    marginTop: 5,
-  },
-   bottomBar: {
+  bottomBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 20,
@@ -225,6 +202,9 @@ const styles = StyleSheet.create({
   bottomText: {
     color: '#000',
     fontSize: 12,
+  },
+  diseaseText: {
+    color: '#f00',
   },
 });
 

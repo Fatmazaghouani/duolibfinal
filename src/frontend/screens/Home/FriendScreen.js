@@ -45,6 +45,7 @@ const FriendScreen = ({ route }) => {
         cancers: user.cancers || [],
       });
       setColor(user.color  || '#D3D3D3');
+      
     }
   }, [user]);
 
@@ -97,7 +98,9 @@ const FriendScreen = ({ route }) => {
 
         <View style={styles.bioContainer}>
           <View style={styles.nameContainer}>
-            <Text style={styles.nameText}>{userName} {user.surname || ''}</Text>
+            <Text style={styles.nameText}>
+  {userName} {user?.surname || 'Nom non renseigné'}
+</Text>
             <Text style={styles.bioText}>{userBio.bio}</Text>
           </View>
 

@@ -258,7 +258,7 @@ const DuoSuggestions = ({ route }) => {
             <View style={styles.buttonsContainer}>
               <TouchableOpacity
                 style={styles.viewProfileButton}
-                onPress={() => navigation.navigate('FriendScreen', { userId: user.uid })}
+                onPress={() => navigation.navigate('UnderConstructionScreen')}
                 
               >
                 <Text style={styles.viewProfileButtonText}>View Profile</Text>
