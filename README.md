@@ -1,4 +1,3 @@
-﻿# Duolibfinal
 ![Logo Duolib](src/frontend/images/smalllogo.png)
 # Duolib - L'application qui rassemble les malades 
 
