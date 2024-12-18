@@ -11,6 +11,7 @@ import {
 import { db, auth } from '../../../backend/firebaseConfig';
 import { collection, onSnapshot, getDoc, doc, updateDoc, setDoc } from '@firebase/firestore';
 import { FontAwesome5 } from '@expo/vector-icons';
+import BottomBar from '../BottomBar';
 
 
 const MessagesScreen = ({ navigation }) => {
@@ -144,6 +145,7 @@ const MessagesScreen = ({ navigation }) => {
       unsubscribeMessages();
       unsubscribeUsers();
     };
+    
   }, [currentUser]);
 
 

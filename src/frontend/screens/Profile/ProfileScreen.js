@@ -7,6 +7,8 @@ import { useNavigation } from '@react-navigation/native';
 import { db, auth } from '../../../backend/firebaseConfig'; // Assurez-vous d'importer les modules nécessaires de Firebase
 import { doc, getDoc, collection, query, orderBy, where, onSnapshot, addDoc, getDocs } from 'firebase/firestore';
 import * as ImagePicker from 'expo-image-picker';
+import BottomBar from '../BottomBar';  // Import du BottomBar
+
 
 
 
@@ -313,6 +315,9 @@ const ProfileScreen = () => {
         <Text>Aucun message à afficher.</Text>
       )}
     </ScrollView>
+    <View style={styles.bottomBarContainer}>
+        <BottomBar />
+      </View>
     
     </View>
     
@@ -322,6 +327,15 @@ const ProfileScreen = () => {
 
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    paddingBottom: 80,  // Laisse de l'espace pour la BottomBar
+  },
+   bottomBarContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
  
   
 introText: {

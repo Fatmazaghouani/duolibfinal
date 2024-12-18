@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Image, TextInput, ScrollView } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Assurez-vous d'avoir installé react-native-vector-icons
-
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; 
+// Assurez-vous d'avoir installé react-native-vector-icons
+import BottomBar from '../BottomBar';
 const SettingsScreen = ({ navigation }) => {
   const settingsOptions = [
     { icon: 'account', label: 'Edit Profile', onPress: () => navigation.navigate('EditPro') },
@@ -12,7 +13,7 @@ const SettingsScreen = ({ navigation }) => {
     { icon: 'history', label: 'Activity Log', onPress: () => navigation.navigate('UnderConstructionScreen') },
     { icon: 'eye-outline', label: 'Viewing & Sharing', onPress: () => navigation.navigate('UnderConstructionScreen') },
     { icon: 'help-circle-outline', label: 'Help', onPress: () => navigation.navigate('Help') },
-    { icon: 'email-outline', label: 'Contact us', onPress: () => navigation.navigate('get in touch') },
+    { icon: 'email-outline', label: 'Contact us', onPress: () => navigation.navigate('UnderConstructionScreen') },
     { icon: 'logout', label: 'Logout', onPress: () => navigation.navigate('Logout') },
   ];
 
@@ -42,33 +43,7 @@ const SettingsScreen = ({ navigation }) => {
         ))}
       </ScrollView>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Pressable style={styles.footerButton} onPress={() => navigation.navigate('feed')}>
-          <Icon name="home-outline" size={24} color="#000" />
-          <Text style={styles.footerText}>Feed</Text>
-        </Pressable>
-        <Pressable style={styles.footerButton} onPress={() => navigation.navigate('Duo')}>
-          <Icon name="account-group-outline" size={24} color="#000" />
-          <Text style={styles.footerText}>Duo</Text>
-        </Pressable>
-        <Pressable style={styles.footerButton} onPress={() => navigation.navigate('Community')}>
-          <Icon name="earth" size={24} color="#000" />
-          <Text style={styles.footerText}>Community</Text>
-        </Pressable>
-        <Pressable style={styles.footerButton} onPress={() => navigation.navigate('Forum')}>
-          <Icon name="forum-outline" size={24} color="#000" />
-          <Text style={styles.footerText}>Forum</Text>
-        </Pressable>
-        <Pressable style={styles.footerButton} onPress={() => navigation.navigate('Notification')}>
-          <Icon name="bell-outline" size={24} color="#FF0000" />
-          <Text style={styles.footerText}>Notification</Text>
-        </Pressable>
-        <Pressable style={styles.footerButton} onPress={() => navigation.navigate('Settings')}>
-          <Icon name="cog-outline" size={24} color="#000" />
-          <Text style={styles.footerText}>Settings</Text>
-        </Pressable>
-      </View>
+      <BottomBar />
     </View>
   );
 };

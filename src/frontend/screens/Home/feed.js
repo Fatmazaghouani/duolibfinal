@@ -5,6 +5,11 @@ import { doc, getDoc, getDocs,arrayRemove,arrayUnion,updateDoc, setDoc, addDoc, 
 import { FontAwesome5 } from '@expo/vector-icons';
 import BottomBar from '../BottomBar';
 
+
+
+
+
+
 const formatDate = (timestamp) => {
   const now = new Date();
   const timeDiff = now - timestamp.toDate();
@@ -13,16 +18,24 @@ const formatDate = (timestamp) => {
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
 
+
+
+
   if (days > 0) {
-  return `${days} days ago`;
-} else if (hours > 0) {
-  return `${hours} hours ago`;
-} else if (minutes > 0) {
-  return `${minutes} minutes ago`;
-} else {
-  return `${seconds} seconds ago`;
-}
-}
+    return `${days} days ago`;
+  } else if (hours > 0) {
+    return `${hours} hours ago`;
+  } else if (minutes > 0) {
+    return `${minutes} minutes ago`;
+  } else {
+    return `${seconds} seconds ago`;
+  }
+};
+
+
+
+
+
 
 const Feed = ({ navigation }) => {
   const [userName, setUserName] = useState('');
@@ -35,22 +48,26 @@ const Feed = ({ navigation }) => {
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [textInputHeight, setTextInputHeight] = useState(40);
+ 
+
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
       if (currentUser) {
         const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-       if (userDoc.exists()) {
-  const userData = userDoc.data();
-  setUserName(`${(userData.name || 'Anonymous')} ${(userData.surname || '')}`.trim());
-} else {
-  setUserName(currentUser.displayName || 'Anonymous');
-}
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setUserName(`${userData.name || 'Anonymous'} ${userData.surname || ''}`.trim());
 
+
+        } else {
+          setUserName(currentUser.displayName || 'Anonymous');
+        }
       }
     };
     fetchCurrentUser();
   }, [currentUser]);
+
 
   // Fetch users to follow (excluding current user)
   useEffect(() => {
@@ -61,6 +78,7 @@ const Feed = ({ navigation }) => {
       setUsers(usersData);
     });
 
+
     return () => unsubscribeUsers();
   }, [currentUser]);
 
@@ -69,49 +87,54 @@ const Feed = ({ navigation }) => {
 
 
 
+
+
+
+
+
+
   useEffect(() => {
     if (!currentUser) return;
-  
+ 
     const followersQuery = query(
       collection(db, 'followers'),
       where('followerID', '==', currentUser.uid),
       where('following', '==', true)
     );
-  
+ 
     const unsubscribeFollowers = onSnapshot(followersQuery, async (snapshot) => {
       const followedUserIds = snapshot.docs.map((doc) => doc.data().followedID);
       followedUserIds.push(currentUser.uid); // Inclure les posts de l'utilisateur actuel
-  
+   
       if (followedUserIds.length > 0) {
         const postsQuery = query(
           collection(db, 'posts'),
           where('userId', 'in', followedUserIds)
         );
-  
+   
         const unsubscribePosts = onSnapshot(postsQuery, (snapshot) => {
           const postsData = snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
-  
+   
           const userMap = {};
           users.forEach((user) => {
-            userMap[user._id] = `${(user.name || 'Anonymous')} ${(user.surname || '')}`.trim();
+            userMap[user._id] = `${user.name || 'Anonymous'} ${user.surname || ''}`.trim();
           });
-  
+   
           if (currentUser) {
             userMap[currentUser.uid] = userName || 'Me';
           }
-  
+   
           // Enrichir les posts avec des données supplémentaires
           const enrichedPosts = postsData.map((post) => ({
             ...post,
             authorName: userMap[post.userId] || 'Anonymous',
             timeAgo: formatDate(post.timestamp),
           }));
-  
+   
           // Ajouter des écouteurs en temps réel pour les likes
           const updatedPosts = enrichedPosts.map((post) => {
             const likeDocRef = doc(db, 'likes', post.id);
-  
-            // Écouter les mises à jour en temps réel du document de like
+           
             const unsubscribeLikes = onSnapshot(likeDocRef, (likeDoc) => {
               if (likeDoc.exists()) {
                 const likeData = likeDoc.data();
@@ -120,93 +143,109 @@ const Feed = ({ navigation }) => {
                     p.id === post.id
                       ? {
                           ...p,
-                          likeCount: likeData.likeCount || 0,  // Nombre de likes
-                          isLikedByCurrentUser: likeData.likers?.includes(currentUser?.uid),  // Vérifier si l'utilisateur a aimé
+                          likeCount: likeData.likeCount || 0,
+                          isLikedByCurrentUser: likeData.likers?.includes(currentUser?.uid),
                         }
                       : p
                   )
                 );
               }
             });
-  
-            // Retourner la fonction d'abonnement pour le nettoyage
+   
             post.unsubscribeLikes = unsubscribeLikes;
             return post;
           });
-  
+   
           // Trier les posts par timestamp
           const sortedPosts = updatedPosts.sort((a, b) => b.timestamp.seconds - a.timestamp.seconds);
           setMappedPosts(sortedPosts);
         });
-  
+   
         return () => unsubscribePosts(); // Nettoyer l'écouteur des posts
       }
     });
-  
+   
+ 
     return () => unsubscribeFollowers(); // Nettoyer l'écouteur des abonnés
   }, [currentUser, users, userName]);
-  
+ 
+
+
 
 
   const handlePost = async () => {
     if (newPost.trim()) {
       try {
-        const userNameToUse = currentUser?.displayName || 'Anonymous';
-        
         await addDoc(collection(db, 'posts'), {
           message: newPost,
-          feeling: '',
-          likes: 0,
           timestamp: new Date(),
           userId: currentUser?.uid,
-          authorName: userNameToUse,
         });
-
+ 
+        // Affichage du toast
         setToastMessage('Your post was uploaded successfully!');
-        setToastVisible(true);
-        setNewPost('');
-        setTimeout(() => setToastVisible(false), 3000);
-        setTextInputHeight(40);
+        setToastVisible(true); // Affiche le toast
+        setNewPost(''); // Réinitialiser le champ de saisie
+        setTimeout(() => setToastVisible(false), 3000); // Cache le toast après 3 secondes
+        setTextInputHeight(40); // Réinitialiser la hauteur du champ de saisie
       } catch (error) {
         console.error('Error adding post:', error);
       }
     }
   };
+ 
 
 
 
 
 
-  const handleLike = async (postId) => {
+
+
+
+
+
+
+
+const handleLike = async (postId) => {
     if (!currentUser) return;
-    const likeDocRef = doc(db, 'likes', postId);  // Utilisation du postId comme identifiant du document
-  
+
+
+
+
+    const likeDocRef = doc(db, 'likes', postId);
+
+
+
+
     try {
       const likeDoc = await getDoc(likeDocRef);
-      
+
+
+
+
       if (likeDoc.exists()) {
         const data = likeDoc.data();
         const currentLikes = data.likers || [];
-        
+
+
+
+
         if (currentLikes.includes(currentUser.uid)) {
-          // L'utilisateur a déjà liké, on le retire
           await updateDoc(likeDocRef, {
             likers: arrayRemove(currentUser.uid),
-            likeCount: currentLikes.length - 1,  // Mise à jour du likeCount
+            likeCount: currentLikes.length - 1,
           });
         } else {
-          // L'utilisateur n'a pas liké, on l'ajoute
           await updateDoc(likeDocRef, {
             likers: arrayUnion(currentUser.uid),
-            likeCount: currentLikes.length + 1,  // Mise à jour du likeCount
+            likeCount: currentLikes.length + 1,
           });
         }
       } else {
-        // Créer un nouveau document pour ce post
         await setDoc(likeDocRef, {
           likers: [currentUser.uid],
-          likeCount: 1,  // Premier like
-          postId: postId,  // Associer l'ID du post
+          likeCount: 1,
+          postId: postId,
         });
       }
     } catch (error) {
@@ -214,31 +253,45 @@ const Feed = ({ navigation }) => {
     }
   };
 
-  const handleLogOut = async () => {
-    try {
-      await signOut(auth);  // Déconnecter l'utilisateur
-      navigation.replace('AuthScreen');  // Rediriger vers l'écran de connexion après la déconnexion
-    } catch (error) {
-      console.error('Error signing out:', error.message);
-    }
-  };
 
 
-  
+
+
+
+ 
+
+
+ 
+
 
   useEffect(() => {
-    if (!currentUser) return;
-  
-    const unsubscribeFunctions = []; // Stocker les fonctions de désabonnement
-  
+  if (!currentUser) return;
+
+
+
+
     const fetchCommentsCount = async () => {
-      mappedPosts.forEach((post) => {
-        // Requête Firebase pour récupérer les commentaires liés au post
+
+
+
+
+  mappedPosts.forEach((post) => {
+        if (post.id === undefined) {
+          console.warn('Post ID is undefined, skipping this post.');
+          return;
+        }
+
+
+ 
+
+
+
+
         const commentsQuery = query(
           collection(db, 'comments'),
           where('postID', '==', post.id) // Assurez-vous que le champ correspond exactement à votre structure Firebase
         );
-  
+ 
         // Écoute en temps réel des changements sur les commentaires
         const unsubscribe = onSnapshot(commentsQuery, (snapshot) => {
           setMappedPosts((prevPosts) =>
@@ -252,23 +305,27 @@ const Feed = ({ navigation }) => {
             )
           );
         });
-  
+ 
         // Ajouter la fonction de désabonnement à la liste
-        unsubscribeFunctions.push(unsubscribe);
+     
+        unsubscribe();
       });
     };
-  
+ 
     fetchCommentsCount();
-  
-    return () => {
-      // Nettoyer tous les écouteurs lors du démontage du composant
-      unsubscribeFunctions.forEach((unsubscribe) => unsubscribe());
-    };
   }, [currentUser, mappedPosts]);
-  
 
 
-  
+ 
+
+
+
+
+ 
+
+
+
+
 
 
 
@@ -281,6 +338,7 @@ const Feed = ({ navigation }) => {
       where('isRead', '==', false)
     );
 
+
     const unsubscribeMessages = onSnapshot(messagesQuery, (snapshot) => {
       const unreadUserIds = new Set();
       snapshot.docs.forEach((doc) => {
@@ -288,11 +346,14 @@ const Feed = ({ navigation }) => {
         unreadUserIds.add(senderId);
       });
 
+
       setUnreadDiscussionsCount(unreadUserIds.size);
     });
 
+
     return () => unsubscribeMessages();
   }, [currentUser]);
+
 
   return (
     <View style={styles.container}>
@@ -318,6 +379,7 @@ const Feed = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
+
       {/* Friends suggestions */}
       <View style={styles.friendsSuggestionContainer}>
         <Text style={styles.friendsSuggestion}>Friends suggestion</Text>
@@ -328,7 +390,7 @@ const Feed = ({ navigation }) => {
           renderItem={({ item }) => (
             <TouchableOpacity onPress={() => navigation.navigate('FriendScreen', { user: item })}>
               <View style={styles.userCard}>
-              <View style={[styles.bubble, { backgroundColor: item.color  || '#D3D3D3'  }]}>
+               <View style={[styles.bubble, { backgroundColor: item.color  || '#D3D3D3'  }]}>
                   <Text style={styles.bubbleText}>
                     {item.name ? item.name.charAt(0).toUpperCase() : 'A'}
                   </Text>
@@ -340,14 +402,16 @@ const Feed = ({ navigation }) => {
         />
       </View>
 
+
       <View style={styles.line} />
+
 
       {/* Post input and feed */}
       <View style={styles.postSection}>
         <TextInput
           style={[styles.postInput, { height: textInputHeight }]}
-placeholder={`Hi ${userName || 'User'}, What’s happening?`}
-  // Dynamic placeholder
+          placeholder={`Hi ${userName || 'User'}, What’s happening?`}
+          // Dynamic placeholder
           value={newPost}
           onChangeText={setNewPost}
           multiline
@@ -359,6 +423,15 @@ placeholder={`Hi ${userName || 'User'}, What’s happening?`}
           <Text style={styles.postButtonText}>Post</Text>
         </TouchableOpacity>
       </View>
+       {/* Toast Display */}
+       {toastVisible && (
+        <View style={styles.toast}>
+          <Text style={styles.toastText}>{toastMessage}</Text>
+        </View>
+      )}
+
+
+
 
       {/* Display posts */}
       <FlatList
@@ -369,27 +442,29 @@ placeholder={`Hi ${userName || 'User'}, What’s happening?`}
     {/* Conteneur pour aligner le logo et le texte "Duolib" sur la même ligne */}
     <View style={styles.logoContainer}>
       {/* Logo en haut */}
-      <Image 
-        source={require('../../images/smalllogo.png')} 
-        style={styles.smallLogo} 
+      <Image
+        source={require('../../images/smalllogo.png')}
+        style={styles.smallLogo}
       />
-      
+     
       {/* Texte "Duolib" */}
       <Text style={styles.duolibText}>
         Duolib
       </Text>
     </View>
 
+
     {/* Texte "Welcome to Duolib" */}
     <Text style={styles.welcomeToDuolib}>
       Welcome to Duolib. Now, you can post messages, invite friends and find your Duo.
     </Text>
 
+
     {/* Image sous le texte */}
     <TouchableOpacity>
-      <Image 
-        source={require('../../images/WelcomeScreen1.png')} 
-        style={styles.welcomeImage} 
+      <Image
+        source={require('../../images/WelcomeScreen1.png')}
+        style={styles.welcomeImage}
       />
     </TouchableOpacity>
   </View>
@@ -401,6 +476,8 @@ placeholder={`Hi ${userName || 'User'}, What’s happening?`}
             <Text style={styles.postContent}>{item.message}</Text>
             {/* Post actions */}
             <View style={styles.postActions}>
+
+
 
 
             <TouchableOpacity
@@ -415,15 +492,20 @@ placeholder={`Hi ${userName || 'User'}, What’s happening?`}
         </TouchableOpacity>
 
 
+
+
         <TouchableOpacity
   style={styles.actionItem}
   onPress={() => navigation.navigate('Comment', { postId: item.id })}
 >
   <FontAwesome5 name="comment" size={24} color="#377DFF" />
   <Text style={styles.iconLabel}>
-    {item.commentCount || 0} Comments
+    Comment
   </Text>
 </TouchableOpacity>
+
+
+
 
 
 
@@ -432,10 +514,12 @@ placeholder={`Hi ${userName || 'User'}, What’s happening?`}
                 <Text style={styles.iconLabel}>Share</Text>
               </TouchableOpacity>
 
-              
+
+             
+
 
             </View>
-            
+           
           </View>
         )}
       />
@@ -444,11 +528,14 @@ placeholder={`Hi ${userName || 'User'}, What’s happening?`}
   );
 };
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
   },
+
+
 
 
   header: {
@@ -612,7 +699,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
   },
-  
+ 
   welcomeImage: {
     width: 700, // Largeur de l'image
     height: 350, // Hauteur de l'image
@@ -630,13 +717,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
+
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center', 
+    justifyContent: 'center',
     padding: 20,
   },
   logoContainer: {
-    flexDirection: 'row', 
+    flexDirection: 'row',
     alignItems: 'center', // Aligne l'image et le texte verticalement
     marginBottom: 20, // Espacement entre le logo/texte et le reste
   },
@@ -660,8 +748,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   welcomeImage: {
-    width: 700, 
-    height: 300, 
+    width: 700,
+    height: 300,
     resizeMode: 'contain',
     alignSelf: 'center',
    
@@ -680,7 +768,10 @@ const styles = StyleSheet.create({
   },
 
 
+
+
 });
 
 
-export default Feed ;
+export default Feed;
+

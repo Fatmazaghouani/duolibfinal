@@ -178,8 +178,8 @@ const FriendScreen = ({ route }) => {
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={styles.contactButton}
-                    onPress={() => navigation.navigate('Chat', { user: user })}
+                    style={[styles.nextButton, { backgroundColor: color   }]}
+                    onPress={() => navigation.navigate('UnderConstructionScreen')}
                   >
                     <Text style={styles.nextButtonText}>Contact</Text>
                   </TouchableOpacity>
@@ -233,6 +233,9 @@ const FriendScreen = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    paddingBottom: 80,  // Laisse de l'espace pour la BottomBar
+  },
   bottomBarContainer: {
     position: 'absolute',
     bottom: 0,
