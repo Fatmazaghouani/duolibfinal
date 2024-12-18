@@ -59,10 +59,15 @@ Pour exécuter ce projet, vous devez installer et configurer votre environnement
 ## Equipe du projet 
 
 Eya MEFTAH : eya.mefteh@imt-atlantique.net 
+
 Fatma ZAGHOUNI : fatma.zaghouani@imt-atlantique.net
+
 Yasmine LAARECH : yasmine.laarech@imt-atlantique.net
+
 Islem CHAARI : islem.chaari@imt-atlantique.net
+
 Louis DEPIESSE : louis.depiesse@imt-atlantique.net
+
 Melissa RODRIGUES : melissa.rodrigues@imt-atlantique.net
 
 ---
