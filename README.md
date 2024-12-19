@@ -22,7 +22,9 @@ Dans le cadre du projet Commande Entreprise, développé en partenariat avec l�
    - Association de deux utilisateurs en fonction de critères communs.
 6. **Forum**
    - Participation à des discussions publiques.
-7. **Traduction**
+7. **Chatbot interactif**
+   - Discussion avec un chatbot interactif qui permet aux utilisateurs d'obtenir des réponses instantanées à leurs questions.
+8. **Traduction**
    - Interface disponible en français et en anglais.
 
 ## Technologies Utilisées
