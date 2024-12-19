@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import PagerView from 'react-native-pager-view'; // Importer PagerView pour le défilement horizontal
-import logo from '../../images/chat.png'; // Assurez-vous que ce chemin est correct
-import smallLogo from '../../images/smalllogo.png'; // Petite image à gauche du titre
+import { useTranslation } from 'react-i18next';
+import logo from '../../images/chat.png';
+import smallLogo from '../../images/smalllogo.png';
 
 const Go2Screen = ({ navigation }) => {
+  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(0); // Suivre la page actuelle
 
   // Fonction pour changer de page et mettre à jour le currentPage
@@ -27,20 +29,16 @@ const Go2Screen = ({ navigation }) => {
       {/* PagerView pour le défilement horizontal */}
       <PagerView style={styles.pagerView} initialPage={0} onPageSelected={handlePageSelected}>
         <View style={styles.page}>
-          <Text style={styles.pageText}>Worldwide community with rare diseases and cancer people</Text>
+          <Text style={styles.pageText}>{t('go2_page1')}</Text>
         </View>
         <View style={styles.page}>
-          <Text style={styles.pageText}>Find your Duo</Text>
+          <Text style={styles.pageText}>{t('go2_page2')}</Text>
         </View>
         <View style={styles.page}>
-          <Text style={styles.pageText}>
-            Unity is strength. We all have two lives. The second begins when we realize that we have only one life.
-          </Text>
+          <Text style={styles.pageText}>{t('go2_page3')}</Text>
         </View>
         <View style={styles.page}>
-          <Text style={styles.pageText}>
-            Create your account to subscribe to fresh releases, find your Duo to fight the disease, create your community and much more...
-          </Text>
+          <Text style={styles.pageText}>{t('go2_page4')}</Text>
         </View>
       </PagerView>
 
@@ -53,13 +51,13 @@ const Go2Screen = ({ navigation }) => {
       </View>
 
      <Pressable style={styles.goButton} onPress={() => navigation.navigate('Signup')}>
-  <Text style={styles.buttonText}>Create an account</Text>
+  <Text style={styles.buttonText}>{t('create_account_button')}</Text>
 </Pressable>
 
       {/* Phrase "Already have an account? Login" */}
       <Pressable onPress={() => navigation.navigate('WelcomeScreen')}>
         <Text style={styles.loginText}>
-          Already have an account? <Text style={styles.loginLink}>Login</Text>
+          {t('already_have_account')} <Text style={styles.loginLink}>{t('login')}</Text>
         </Text>
       </Pressable>
     </View>

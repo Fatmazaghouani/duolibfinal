@@ -1,20 +1,26 @@
-import React from 'react';
-import { View, Text, StyleSheet, Pressable, Image, Linking } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Pressable, Image, Linking, Modal, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import logo from '../../images/logo.png';
+import i18n from '../../../i18n';
 import smallLogo from '../../images/smalllogo.png';
+import CountryFlag from "react-native-country-flag";
 
-const AboutUsScreen = ({ navigation }) => {
+const LanguageHomeScreen = ({ navigation }) => {
   const { t } = useTranslation();
+
+  const changeLanguage = (lang) => {
+    i18n.changeLanguage(lang);
+  };
 
   return (
     <View style={styles.container}>
-      {/* Close Button */}
+      {/* Bouton de fermeture */}
       <Pressable onPress={() => navigation.navigate('Starting')} style={styles.closeButton}>
         <Text style={styles.closeText}>×</Text>
       </Pressable>
 
-      {/* Title with Logo */}
+      {/* Titre avec logo */}
       <View style={styles.titleContainer}>
         <Image source={smallLogo} style={styles.smallLogo} />
         <Text style={styles.logo}>
@@ -23,23 +29,28 @@ const AboutUsScreen = ({ navigation }) => {
         </Text>
       </View>
 
-      {/* Main Logo */}
+      {/* Logo principal */}
       <Image source={logo} style={styles.logoImage} />
 
-      {/* Content */}
-      <Text style={styles.title}>{t('about_us_title')}</Text>
-      <Text style={styles.content}>{t('about_us_content')}</Text>
+      {/* Contenu */}
+      <Text style={styles.title}>{t('choose_language')}</Text>
+      
+      <Pressable onPress={() => changeLanguage('fr')} style={styles.chatbotIconWrapper}>
+        <CountryFlag isoCode="fr" size={25}/>
+        <Text style={styles.chatbotText}>{t('french')}</Text>
+      </Pressable>
+      <Pressable onPress={() => changeLanguage('en')} style={styles.chatbotIconWrapper}>
+      <CountryFlag isoCode="gb" size={25}/>
+      <Text style={styles.chatbotText}>{t('english')}</Text>
+      </Pressable>
 
 
-      {/* Buttons */}
+      {/* Boutons */}
       <View style={styles.buttonContainer}>
         <Pressable style={styles.goButton} onPress={() => navigation.navigate('Go')}>
           <Text style={styles.buttonText}>{t('go_button')}</Text>
         </Pressable>
-        <Pressable
-          style={styles.donateButton}
-          onPress={() => Linking.openURL('https://cancer.bzh/faire-un-don?fbclid=IwY2xjawG1S-RleHRuA2FlbQIxMAABHWllCMDzQLXjp-Z12jpGWJG9KruSDVvUI3_vt-ej3U8xlacXckGinIU-MQ_aem_SeRWhoRaafyaxsaX3dAOTA')}
-        >
+        <Pressable style={styles.donateButton} onPress={() => Linking.openURL('https://cancer.bzh/faire-un-don?fbclid=IwY2xjawG1S-RleHRuA2FlbQIxMAABHWllCMDzQLXjp-Z12jpGWJG9KruSDVvUI3_vt-ej3U8xlacXckGinIU-MQ_aem_SeRWhoRaafyaxsaX3dAOTA')}>
           <Text style={styles.buttonText}>{t('donate_button')}</Text>
         </Pressable>
       </View>
@@ -70,11 +81,11 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    top: 20,
-    left: 20,
+    top: 30,
+    left: 20, // Position à gauche
   },
   closeText: {
-    fontSize: 24,
+    fontSize: 30,
     color: '#ff0000',
   },
   titleContainer: {
@@ -105,41 +116,33 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   title: {
-    fontSize: 20,
+    fontSize: 30,
+    fontWeight: '600',
+    marginBottom: 20,
     textAlign: 'center',
-    marginBottom: 30,
-    color: '#444444',
   },
   content: {
-    fontSize: 16,
+    fontSize: 18,
     textAlign: 'center',
-    color: '#666666',
-    marginHorizontal: 20,
     marginBottom: 20,
+    lineHeight: 26,
+    color: '#444444',
   },
   accountText: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 20,
-  },
-  logInContainer: {
-    marginTop: 20,
-  },
-  logInText: {
     fontSize: 16,
-    color: '#444444',
     textAlign: 'center',
+    marginTop: 20,
+    color: '#000000',
   },
-  logInLink: {
-    color: '#FFAA00', // Orange pour "Log in"
+  loginText: {
+    color: '#FFA500', // Couleur orange pour "Log in"
     fontWeight: 'bold',
-    textDecorationLine: 'underline',
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '90%',
-    marginBottom: 20,
+    marginTop: 20,
   },
   goButton: {
     backgroundColor: '#2196F3',
@@ -160,7 +163,33 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  
+  logInContainer: {
+    marginTop: 20,
+  },
+  logInText: {
+    fontSize: 16,
+    color: '#444444',
+    textAlign: 'center',
+  },
+  logInLink: {
+    color: '#FFAA00', // Orange pour "Log in"
+    fontWeight: 'bold',
+    textDecorationLine: 'underline',
+  },
+  chatbotIconWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,  // Réduire la marge si nécessaire
+    backgroundColor: '#f0f0f0',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 20, // Réduire le rayon du coin pour un cadre plus petit
+  },
+  chatbotText: {
+    fontSize: 25,  // Réduire la taille de texte pour un aspect plus compact
+    marginLeft: 8,  // Réduire l'espacement entre l'icône et le texte
+    color: '#2196F3',
+  }
 });
 
-export default AboutUsScreen;
+export default LanguageHomeScreen;

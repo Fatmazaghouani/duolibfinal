@@ -64,6 +64,7 @@ import Comment from './frontend/screens/Home/Comment';
 import UnderConstructionScreen from './frontend/screens/UnderConstructionScreen';  
 import ResultsScreen from './frontend/screens/Home/ResultsScreen';
 
+import LanguageHomeScreen from './frontend/screens/Starting/LanguageHome';
 
 const Stack = createStackNavigator();
 
@@ -89,6 +90,9 @@ const App = () => {
         <Stack.Screen name="Signup" component={Signup} />
         <Stack.Screen name="Signup2" component={Signup2} />
         <Stack.Screen name="Signup3" component={Signup3} />
+        
+        <Stack.Screen name="LanguageHome" component={LanguageHomeScreen} />
+
         <Stack.Screen name="PersonScreen" component={PersonScreen} />
         <Stack.Screen name="CompanyScreen" component={CompanyScreen} />
         <Stack.Screen name="Feed" component={Feed} />

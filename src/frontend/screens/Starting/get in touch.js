@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; // Importation des icônes
-import logo from '../../images/@.png'; // Assurez-vous que ce chemin est correct
-import smallLogo from '../../images/smalllogo.png'; // Petite image à gauche du titre
+import { useTranslation } from 'react-i18next';
+import logo from '../../images/@.png';
+import smallLogo from '../../images/smalllogo.png';
 
 const ContactUsScreen = ({ navigation }) => {
+  const { t } = useTranslation();
+
   const [isChecked, setIsChecked] = useState(false); // État pour la checkbox personnalisée
   const [email, setEmail] = useState('');
   const [company, setCompany] = useState('');
@@ -31,37 +34,37 @@ const ContactUsScreen = ({ navigation }) => {
     // Validation de l'email
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!email) {
-      errorMessages.email = 'Please complete your email';
+      errorMessages.email = t('contact_email_error_required');
       valid = false;
     } else if (!emailRegex.test(email)) {
-      errorMessages.email = 'Please enter a valid email';
+      errorMessages.email = t('contact_email_error_invalid');
       valid = false;
     }
 
     // Validation du nom
     if (!name) {
-      errorMessages.name = 'Please complete your name';
+      errorMessages.name = t('contact_name_error_required');
       valid = false;
     }
 
     // Validation du prénom
     if (!surname) {
-      errorMessages.surname = 'Please complete your surname';
+      errorMessages.surname = t('contact_surname_error_required');
       valid = false;
     }
 
     // Validation du message
     if (!message) {
-      errorMessages.message = 'Please enter a message';
+      errorMessages.message = t('contact_message_error_required');
       valid = false;
     } else if (message.length > 1000) {
-      errorMessages.message = 'Your message is too long: maximum 1.000 characters';
+      errorMessages.message = t('contact_message_error_too_long');
       valid = false;
     }
 
     // Validation de la politique de confidentialité
     if (!isChecked) {
-      errorMessages.privacyPolicy = 'Please agree to our friendly privacy policy';
+      errorMessages.privacyPolicy = t('contact_privacy_error');
       valid = false;
     }
 
@@ -71,7 +74,6 @@ const ContactUsScreen = ({ navigation }) => {
 
   const handleSubmit = () => {
     if (validateForm()) {
-      
       navigation.navigate('Reponse');
     }
   };
@@ -95,7 +97,7 @@ const ContactUsScreen = ({ navigation }) => {
       {/* Logo principal */}
       <Image source={logo} style={styles.logoImage} />
 
-      <Text style={styles.title}>Get in Touch</Text>
+      <Text style={styles.title}>{t('contact_title')}</Text>
 
       {/* Formulaire avec icônes dans les champs */}
       <View style={styles.inputContainer}>
@@ -104,7 +106,7 @@ const ContactUsScreen = ({ navigation }) => {
           <Ionicons name="mail-outline" size={18} color="#FF4081" style={styles.icon} />
           <TextInput
             style={styles.input}
-            placeholder="Your email"
+            placeholder={t('contact_email_placeholder')}
             keyboardType="email-address"
             value={email}
             onChangeText={setEmail}
@@ -117,7 +119,7 @@ const ContactUsScreen = ({ navigation }) => {
           <Ionicons name="business-outline" size={18} color="#FF4081" style={styles.icon} />
           <TextInput
             style={styles.input}
-            placeholder="Company/Association (optional)"
+            placeholder={t('contact_company_placeholder')}
             value={company}
             onChangeText={setCompany}
           />
@@ -128,7 +130,7 @@ const ContactUsScreen = ({ navigation }) => {
           <Ionicons name="person-outline" size={18} color="#FF4081" style={styles.icon} />
           <TextInput
             style={styles.input}
-            placeholder="Your name"
+            placeholder={t('contact_name_placeholder')}
             value={name}
             onChangeText={setName}
           />
@@ -140,7 +142,7 @@ const ContactUsScreen = ({ navigation }) => {
           <Ionicons name="person-outline" size={18} color="#FF4081" style={styles.icon} />
           <TextInput
             style={styles.input}
-            placeholder="Your surname"
+            placeholder={t('contact_surname_placeholder')}
             value={surname}
             onChangeText={setSurname}
           />
@@ -152,7 +154,7 @@ const ContactUsScreen = ({ navigation }) => {
           <Ionicons name="chatbubble-ellipses-outline" size={18} color="#FF4081" style={styles.icon} />
           <TextInput
             style={[styles.input, styles.textArea]}
-            placeholder="Your message"
+            placeholder={t('contact_message_placeholder')}
             multiline
             maxLength={1000}
             value={message}
@@ -165,14 +167,14 @@ const ContactUsScreen = ({ navigation }) => {
       {/* Boutons */}
       <View style={styles.buttonContainer}>
         <Pressable style={styles.backButton} onPress={() => navigation.navigate('Starting')}>
-          <Text style={styles.buttonText}>Back</Text>
+          <Text style={styles.buttonText}>{t('contact_back_button')}</Text>
         </Pressable>
         <Pressable
           style={[styles.sendButton, { opacity: isChecked ? 1 : 0.5 }]}
           disabled={!isChecked}
           onPress={handleSubmit}
         >
-          <Text style={styles.buttonText}>Send Message</Text>
+          <Text style={styles.buttonText}>{t('contact_send_button')}</Text>
         </Pressable>
       </View>
 
@@ -181,7 +183,7 @@ const ContactUsScreen = ({ navigation }) => {
         <View style={[styles.checkbox, isChecked && styles.checked]}>
           {isChecked && <Text style={styles.checkmark}>✓</Text>}
         </View>
-        <Text style={styles.checkboxText}>You agree to our friendly privacy policy</Text>
+        <Text style={styles.checkboxText}>{t('contact_privacy_checkbox')}</Text>
       </Pressable>
     </ScrollView>
   );
@@ -231,14 +233,17 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start', // Aligne l'icône en haut
+    justifyContent: 'flex-start', // Positionne l'icône à gauche
     borderWidth: 1,
     borderColor: '#CCCCCC',
     borderRadius: 10,
-    padding: 12,
+    paddingVertical: 12, // Ajoute un padding vertical pour éloigner le texte des bords
+    paddingLeft: 12, // Ajoute un padding à gauche
+    paddingRight: 8, // Ajoute un padding à droite pour le texte
     marginBottom: 15,
     backgroundColor: '#F9F9F9',
-  },
+  },  
   icon: {
     marginRight: 10,
   },
@@ -262,6 +267,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     width: '48%',
     alignItems: 'center',
+    justifyContent: 'center', // Centre le texte verticalement
   },
   sendButton: {
     backgroundColor: '#9C27B0',
@@ -269,6 +275,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     width: '48%',
     alignItems: 'center',
+    justifyContent: 'center', // Centre le texte verticalement
   },
   buttonText: {
     color: '#ffffff',

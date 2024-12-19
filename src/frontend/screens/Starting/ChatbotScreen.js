@@ -1,26 +1,39 @@
 import React from 'react';
 import { View, StyleSheet, Pressable, Text } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../../i18n';
 
 const ChatbotScreen = ({ navigation }) => {
+  const { t } = useTranslation();
+  const currentLanguage = i18n.language;
+
   return (
     <View style={styles.container}>
       <WebView
         source={{
           html: `<!DOCTYPE html>
-          <html lang="en">
+          <html lang="fr">
           <head>
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
               <title>Chat Widget</title>
               <script type="text/javascript">
                   (function(d, m){
-                      var kommunicateSettings = 
-                          {"appId":"21da1dade4b17e791260e1efe7149c43d","popupWidget":true,"automaticChatOpenOnNavigation":true};
-                      var s = document.createElement("script"); s.type = "text/javascript"; s.async = true;
+                      var kommunicateSettings = {
+                        "appId": "21da1dade4b17e791260e1efe7149c43d",
+                        "popupWidget": true,
+                        "automaticChatOpenOnNavigation": true,
+                        "language": "fr" // Forcer la langue en français
+                      };
+                      var s = document.createElement("script"); 
+                      s.type = "text/javascript"; 
+                      s.async = true;
                       s.src = "https://widget.kommunicate.io/v2/kommunicate.app";
-                      var h = document.getElementsByTagName("head")[0]; h.appendChild(s);
-                      window.kommunicate = m; m._globals = kommunicateSettings;
+                      var h = document.getElementsByTagName("head")[0]; 
+                      h.appendChild(s);
+                      window.kommunicate = m; 
+                      m._globals = kommunicateSettings;
                   })(document, window.kommunicate || {});
               </script>
           </head>
@@ -34,7 +47,7 @@ const ChatbotScreen = ({ navigation }) => {
       {/* Bouton centré en bas */}
       <View style={styles.buttonContainer}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.buttonText}>Back to Start</Text>
+          <Text style={styles.buttonText}>{t('back_chatbot')}</Text>
         </Pressable>
       </View>
     </View>

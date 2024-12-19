@@ -1,17 +1,20 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Image, Linking } from 'react-native';
-import logo from '../../images/logo.png'; // Chemin vers le logo principal
-import smallLogo from '../../images/smalllogo.png'; // Petite image à gauche du titre
+import { useTranslation } from 'react-i18next';
+import logo from '../../images/logo.png';
+import smallLogo from '../../images/smalllogo.png';
 
 const SupportDuolibScreen = ({ navigation }) => {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
-      {/* Croix rouge à gauche */}
+      {/* Close Button */}
       <Pressable onPress={() => navigation.navigate('Starting')} style={styles.closeButton}>
         <Text style={styles.closeText}>×</Text>
       </Pressable>
 
-      {/* Titre avec petite icône */}
+      {/* Title with Small Icon */}
       <View style={styles.titleContainer}>
         <Image source={smallLogo} style={styles.smallLogo} />
         <Text style={styles.logo}>
@@ -20,33 +23,35 @@ const SupportDuolibScreen = ({ navigation }) => {
         </Text>
       </View>
 
-      {/* Logo principal */}
+      {/* Main Logo */}
       <Image source={logo} style={styles.logoImage} />
 
-      {/* Contenu */}
-      <Text style={styles.title}>Support Duolib</Text>
-      <Text style={styles.content}>
-        Your contributions ensure that Duolib will remain free and accessible for millions of people around the world.
-      </Text>
+      {/* Content */}
+      <Text style={styles.title}>{t('support_duolib_title')}</Text>
+      <Text style={styles.content}>{t('support_duolib_content')}</Text>
 
-      {/* Boutons */}
+      {/* Buttons */}
       <View style={styles.buttonContainer}>
         <Pressable style={styles.goButton} onPress={() => navigation.navigate('Go')}>
-          <Text style={styles.buttonText}>Go</Text>
+          <Text style={styles.buttonText}>{t('go_button')}</Text>
         </Pressable>
-        <Pressable style={styles.donateButton} onPress={() => Linking.openURL('https://cancer.bzh/faire-un-don?fbclid=IwY2xjawG1S-RleHRuA2FlbQIxMAABHWllCMDzQLXjp-Z12jpGWJG9KruSDVvUI3_vt-ej3U8xlacXckGinIU-MQ_aem_SeRWhoRaafyaxsaX3dAOTA')}>
-          <Text style={styles.buttonText}>Donate</Text>
+        <Pressable
+          style={styles.donateButton}
+          onPress={() => Linking.openURL('https://cancer.bzh/faire-un-don?fbclid=IwY2xjawG1S-RleHRuA2FlbQIxMAABHWllCMDzQLXjp-Z12jpGWJG9KruSDVvUI3_vt-ej3U8xlacXckGinIU-MQ_aem_SeRWhoRaafyaxsaX3dAOTA')}
+        >
+          <Text style={styles.buttonText}>{t('donate_button')}</Text>
         </Pressable>
       </View>
 
-      {/* Lien Already have an account */}
+      {/* Log In Link */}
       <View style={styles.logInContainer}>
         <Text style={styles.logInText}>
-          Already have an account?{' '}
+          {t('already_have_account')} {' '}
           <Text
             style={styles.logInLink}
-            onPress={() => navigation.navigate('WelcomeScreen')}>
-            Log in
+            onPress={() => navigation.navigate('WelcomeScreen')}
+          >
+            {t('log_in')}
           </Text>
         </Text>
       </View>

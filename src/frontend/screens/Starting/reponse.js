@@ -1,20 +1,21 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Image, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import logo from '../../images/@.png'; // Assurez-vous que le chemin est correct
-import smallLogo from '../../images/smalllogo.png'; // Petite logo
+import { useTranslation } from 'react-i18next';
+import logo from '../../images/@.png';
+import smallLogo from '../../images/smalllogo.png';
 
 const ReponseScreen = ({ navigation }) => {
+  const { t } = useTranslation();
 
   // "Have an Account" Component
   const HaveAnAccount = () => {
     return (
       <Text style={styles.haveAnAccountContainer}>
         <Text style={styles.haveAnAccount}>
-          <Text style={styles.haveAnAccount1}>Have an account ?</Text>
+          <Text style={styles.haveAnAccount1}>{t('have_account')}</Text>
           <Text style={styles.text}>{` `}</Text>
         </Text>
-        <Text style={styles.logIn} onPress={() => navigation.navigate('WelcomeScreen')}>Log in</Text>
+        <Text style={styles.logIn} onPress={() => navigation.navigate('WelcomeScreen')}>{t('log_in')}</Text>
       </Text>
     );
   };
@@ -35,26 +36,22 @@ const ReponseScreen = ({ navigation }) => {
       {/* Main Logo */}
       <Image source={logo} style={styles.logoImage} />
 
-      <Text style={styles.title}>Get in Touch</Text>
+      <Text style={styles.title}>{t('get_in_touch')}</Text>
 
       {/* Main message */}
       <View style={styles.messageContainer}>
-        <Text style={styles.messageText}>
-          Hi. My name is Raphael, I’m the founder of Duolib. I’ve got your message and one member of our team will get back as soon as possible.
-        </Text>
-        <Text style={styles.messageText}>
-          If you want to join our team, you’re welcome!
-        </Text>
+        <Text style={styles.messageText}>{t('response_message_1')}</Text>
+        <Text style={styles.messageText}>{t('response_message_2')}</Text>
       </View>
 
       {/* Buttons */}
       <View style={styles.buttonContainer}>
         <Pressable style={styles.createAccountButton} onPress={() => navigation.navigate('Signup')}>
-          <Text style={styles.buttonText}>Create Account</Text>
+          <Text style={styles.buttonText}>{t('create_account')}</Text>
         </Pressable>
         {/* Change the navigation from FAQ to Help */}
         <Pressable style={styles.faqButton} onPress={() => navigation.navigate('Help')}>
-          <Text style={styles.buttonText}>FAQ</Text>
+          <Text style={styles.buttonText}>{t('faq')}</Text>
         </Pressable>
       </View>
 

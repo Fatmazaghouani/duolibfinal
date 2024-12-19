@@ -1,9 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
-import logo from '../../images/fleur.png'; // Assurez-vous que ce chemin est correct
-import smallLogo from '../../images/smalllogo.png'; // Petite image à gauche du titre
+import { useTranslation } from 'react-i18next';
+import logo from '../../images/fleur.png';
+import smallLogo from '../../images/smalllogo.png';
 
 const GoScreen = ({ navigation }) => {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
       {/* Logo et Titre */}
@@ -17,22 +20,20 @@ const GoScreen = ({ navigation }) => {
       <Image source={logo} style={styles.largeLogo} />
 
       {/* Texte avec même style */}
-      <Text style={styles.subtitle}>No ads</Text>
-      <Text style={styles.subtitle}>No data sell</Text>
-      <Text style={styles.subtitle}>and almost free!</Text>
-      <Text style={styles.subtitle}>
-        The heart and soul of Duolib is our global community, and donors.
-      </Text>
+      <Text style={styles.subtitle}>{t('no_ads')}</Text>
+      <Text style={styles.subtitle}>{t('no_data_sell')}</Text>
+      <Text style={styles.subtitle}>{t('almost_free')}</Text>
+      <Text style={styles.subtitle}>{t('community_message')}</Text>
 
       {/* Bouton Go */}
-      <Pressable style={styles.goButton} onPress={() => {navigation.navigate('Go2')}}>
-        <Text style={styles.buttonText}>Go</Text>
+      <Pressable style={styles.goButton} onPress={() => navigation.navigate('Go2')}>
+        <Text style={styles.buttonText}>{t('go_button')}</Text>
       </Pressable>
 
       {/* Phrase "Already have an account? Login" */}
       <Pressable onPress={() => navigation.navigate('WelcomeScreen')}>
         <Text style={styles.loginText}>
-          Already have an account? <Text style={styles.loginLink}>Login</Text>
+          {t('login_prompt')} <Text style={styles.loginLink}>{t('login_link')}</Text>
         </Text>
       </Pressable>
     </View>
@@ -60,14 +61,9 @@ const styles = StyleSheet.create({
   logoTextBlack: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#000000', // Noir pour la première moitié
+    color: '#000000',
   },
   logoTextRose: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#FF4081', // Rose pour la deuxième moitié
-  },
-  logoText: {
     fontSize: 32,
     fontWeight: 'bold',
     color: '#FF4081',
@@ -85,7 +81,7 @@ const styles = StyleSheet.create({
     color: '#000000',
   },
   goButton: {
-    backgroundColor: '#37CDFF', // Bleu
+    backgroundColor: '#37CDFF',
     padding: 12,
     borderRadius: 30,
     width: '80%',
@@ -104,7 +100,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   loginLink: {
-    color: '#FFA500', // Orange pour le mot "Login"
+    color: '#FFA500',
     fontWeight: '500',
     textDecorationLine: 'underline',
   },

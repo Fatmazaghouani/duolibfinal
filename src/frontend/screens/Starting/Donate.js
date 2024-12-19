@@ -1,19 +1,22 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 const Donate = ({ navigation }) => {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
       <Pressable onPress={() => navigation.goBack()} style={styles.closeButton}>
         <Text style={styles.closeText}>X</Text>
       </Pressable>
-      <Text style={styles.title}>Donate Page</Text>
+      <Text style={styles.title}>{t('donateTitle')}</Text>
       <View style={styles.buttonContainer}>
         <Pressable style={styles.button} onPress={() => navigation.navigate('Go')}>
-          <Text style={styles.buttonText}>Go</Text>
+          <Text style={styles.buttonText}>{t('go')}</Text>
         </Pressable>
         <Pressable style={styles.donateButton} onPress={() => navigation.navigate('Donate')}>
-          <Text style={styles.donateText}>Donate</Text>
+          <Text style={styles.donateText}>{t('donate')}</Text>
         </Pressable>
       </View>
     </View>

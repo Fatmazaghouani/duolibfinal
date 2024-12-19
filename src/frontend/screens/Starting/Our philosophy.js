@@ -1,17 +1,20 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Image, Linking } from 'react-native';
-import logo from '../../images/logo.png'; // Assurez-vous que ce chemin est correct
-import smallLogo from '../../images/smalllogo.png'; // Petite image à gauche du titre
+import { useTranslation } from 'react-i18next';
+import logo from '../../images/logo.png';
+import smallLogo from '../../images/smalllogo.png';
 
 const OurPhilosophy = ({ navigation }) => {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
-      {/* Bouton de fermeture (croix rouge à gauche) */}
+      {/* Close Button */}
       <Pressable onPress={() => navigation.goBack()} style={styles.closeButton}>
         <Text style={styles.closeText}>×</Text>
       </Pressable>
 
-      {/* Titre avec logo */}
+      {/* Title with Logo */}
       <View style={styles.titleContainer}>
         <Image source={smallLogo} style={styles.smallLogo} />
         <Text style={styles.logo}>
@@ -20,39 +23,37 @@ const OurPhilosophy = ({ navigation }) => {
         </Text>
       </View>
 
-      {/* Logo principal */}
+      {/* Main Logo */}
       <Image source={logo} style={styles.logoImage} />
 
-      {/* Contenu */}
-      <Text style={styles.title}>Our Philosophy</Text>
-      <Text style={styles.content}>
-        The heart and soul of Duolib is our community and donors – all united to share unlimited access to reliable information and to help people with cancer or/and a rare disease.
-      </Text>
-      <Text style={styles.content}>Your donations</Text>
-      <Text style={styles.content}>
-        Duolib is free, available to everyone with no ads and pharmaceutical partnership. Please help us to maintain our websites free.
-      </Text>
+      {/* Content */}
+      <Text style={styles.title}>{t('our_philosophy_title')}</Text>
+      <Text style={styles.content}>{t('our_philosophy_content_1')}</Text>
+      <Text style={styles.content}>{t('our_philosophy_content_2')}</Text>
+      <Text style={styles.content}>{t('our_philosophy_content_3')}</Text>
 
-      {/* Boutons */}
+      {/* Buttons */}
       <View style={styles.buttonContainer}>
         <Pressable style={styles.goButton} onPress={() => navigation.navigate('Go')}>
-          <Text style={styles.buttonText}>Go</Text>
+          <Text style={styles.buttonText}>{t('go_button')}</Text>
         </Pressable>
         <Pressable 
           style={styles.donateButton} 
           onPress={() => Linking.openURL('https://cancer.bzh/faire-un-don?fbclid=IwY2xjawG1S-RleHRuA2FlbQIxMAABHWllCMDzQLXjp-Z12jpGWJG9KruSDVvUI3_vt-ej3U8xlacXckGinIU-MQ_aem_SeRWhoRaafyaxsaX3dAOTA')}
         >
-          <Text style={styles.buttonText}>Donate</Text>
+          <Text style={styles.buttonText}>{t('donate_button')}</Text>
         </Pressable>
       </View>
 
-      {/* Lien pour "Already have an account?" et "Log in" */}
-      <View style={styles.accountContainer}>
-        <Text style={styles.accountText}>
-          <Text style={styles.boldText}>Already have an account?</Text>{' '}
-          <Pressable onPress={() => navigation.navigate('WelcomeScreen')}>
-            <Text style={styles.logIn}>Log in</Text>
-          </Pressable>
+      {/* Phrase "Already have an account? Login" */}
+      <View style={styles.logInContainer}>
+        <Text style={styles.logInText}>
+        {t('already_have_account')}{' '}
+          <Text
+            style={styles.logInLink}
+            onPress={() => navigation.navigate('WelcomeScreen')}> 
+            {t('log_in')}
+          </Text>
         </Text>
       </View>
     </View>
@@ -116,11 +117,24 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     color: '#444444',
   },
+  logInContainer: {
+    marginTop: 20,
+  },
+  logInText: {
+    fontSize: 16,
+    color: '#444444',
+    textAlign: 'center',
+  },
+  logInLink: {
+    color: '#FFAA00', // Orange pour "Log in"
+    fontWeight: 'bold',
+    textDecorationLine: 'underline',
+  },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '90%',
-    marginTop: 10,  // Réduction de la marge pour remonter les boutons
+    marginTop: 10,
   },
   goButton: {
     backgroundColor: '#2196F3',
@@ -142,7 +156,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   accountContainer: {
-    marginTop: 20,  // Réduction de l'espacement sous les boutons
+    marginTop: 20,
     alignItems: 'center',
   },
   accountText: {

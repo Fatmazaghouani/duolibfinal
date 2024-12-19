@@ -1,21 +1,22 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 // Images fictives pour les éléments
 import profile1 from '../../images/chat.png'; // Image de profil de l'ami
 import postImage from '../../images/fleur.png'; // Image du post
-import logo from '../../images/logo.png'; // Logo de l'application
 
 const FeedScreen = ({ navigation }) => {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
-      
       {/* Propositions d'amis en cercles */}
       <View style={styles.storiesContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.storyCircle}>
             <Image source={profile1} style={styles.storyImage} />
-            <Text style={styles.storyText}>John</Text>
+            <Text style={styles.storyText}>{t('friendName')}</Text>
           </View>
           {/* Ajouter plus de propositions d'amis ici */}
         </ScrollView>
@@ -27,17 +28,17 @@ const FeedScreen = ({ navigation }) => {
         <View style={styles.post}>
           <View style={styles.postHeader}>
             <Image source={profile1} style={styles.profileImage} />
-            <Text style={styles.username}>John Doe</Text>
+            <Text style={styles.username}>{t('username')}</Text>
           </View>
           <Image source={postImage} style={styles.postImage} />
           <View style={styles.reactionsContainer}>
-            <Text style={styles.reactionText}>❤️ 120 Likes</Text>
-            <Text style={styles.reactionText}>💬 45 Comments</Text>
+            <Text style={styles.reactionText}>❤️ {t('likes', { count: 120 })}</Text>
+            <Text style={styles.reactionText}>💬 {t('comments', { count: 45 })}</Text>
           </View>
           {/* Commentaires */}
           <View style={styles.commentSection}>
-            <Text style={styles.comment}>User123: Great post!</Text>
-            <Text style={styles.comment}>Jane: Love this!</Text>
+            <Text style={styles.comment}>User123: {t('comment1')}</Text>
+            <Text style={styles.comment}>Jane: {t('comment2')}</Text>
           </View>
         </View>
 
@@ -47,19 +48,18 @@ const FeedScreen = ({ navigation }) => {
       {/* Footer (Header en bas avec 4 boutons) */}
       <View style={styles.footer}>
         <Pressable style={styles.footerButton} onPress={() => navigation.navigate('Feed')}>
-          <Text style={styles.footerButtonText}>Feed</Text>
+          <Text style={styles.footerButtonText}>{t('feed')}</Text>
         </Pressable>
         <Pressable style={styles.footerButton} onPress={() => navigation.navigate('Friends')}>
-          <Text style={styles.footerButtonText}>Friends</Text>
+          <Text style={styles.footerButtonText}>{t('friends')}</Text>
         </Pressable>
         <Pressable style={styles.footerButton} onPress={() => navigation.navigate('Notification')}>
-          <Text style={styles.footerButtonText}>Notification</Text>
+          <Text style={styles.footerButtonText}>{t('notification')}</Text>
         </Pressable>
         <Pressable style={styles.footerButton} onPress={() => navigation.navigate('Settings')}>
-          <Text style={styles.footerButtonText}>Settings</Text>
+          <Text style={styles.footerButtonText}>{t('settings')}</Text>
         </Pressable>
       </View>
-      
     </View>
   );
 };
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     borderWidth: 2,
-    borderColor: '#FF4081', // Color de bordure rose
+    borderColor: '#FF4081',
   },
   storyText: {
     marginTop: 5,
