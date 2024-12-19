@@ -13,6 +13,7 @@ import Go2Screen from './frontend/screens/Starting/go2';
 import Donate from './frontend/screens/Starting/Donate';
 import FAQPage from './frontend/screens/Starting/Help';
 import FeedScreen from './frontend/screens/Starting/feed';
+
 import ReponseScreen from './frontend/screens/Starting/reponse'; 
 import WelcomeScreen from "./frontend/screens/SignIn/WelcomeScreen";
 import LoginScreen from './frontend/screens/SignIn/LoginScreen';
@@ -61,6 +62,8 @@ import PasswordSuccessScreen from './frontend/screens/ResetPassword/PasswordSucc
 import FriendScreen from './frontend/screens/Home/FriendScreen';
 import Comment from './frontend/screens/Home/Comment';
 import UnderConstructionScreen from './frontend/screens/UnderConstructionScreen';  
+import ResultsScreen from './frontend/screens/Home/ResultsScreen';
+
 
 const Stack = createStackNavigator();
 
@@ -129,6 +132,7 @@ const App = () => {
         <Stack.Screen name="FriendScreen" component={FriendScreen} />
         <Stack.Screen name="UnderConstructionScreen" component={UnderConstructionScreen} />
         <Stack.Screen name="Comment" component={Comment} />
+        <Stack.Screen name="ResultsScreen" component={ResultsScreen} />
 
 
         

@@ -297,17 +297,15 @@ const ProfileScreen = () => {
                 <Text style={styles.iconLabel}>Like</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.actionItem}>
-                <FontAwesome5 name="share" size={24} color="#377DFF" />
-                <Text style={styles.iconLabel}>Share</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.actionItem}>
                 <FontAwesome5 name="comment" size={24} color="#377DFF" />
                 <Text style={styles.iconLabel}>Comment</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.actionItem}>
-                <FontAwesome5 name="paper-plane" size={24} color="#377DFF" />
-                <Text style={styles.iconLabel}>Send</Text>
+                <FontAwesome5 name="share" size={24} color="#377DFF" />
+                <Text style={styles.iconLabel}>Share</Text>
               </TouchableOpacity>
+              
+              
             </View>
           </View>
         ))

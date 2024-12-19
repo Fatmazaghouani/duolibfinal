@@ -99,7 +99,7 @@ const FriendScreen = ({ route }) => {
         <View style={styles.bioContainer}>
           <View style={styles.nameContainer}>
             <Text style={styles.nameText}>
-  {userName} {user?.surname || 'Nom non renseigné'}
+  {userName} 
 </Text>
             <Text style={styles.bioText}>{userBio.bio}</Text>
           </View>
@@ -197,7 +197,7 @@ const FriendScreen = ({ route }) => {
         {posts.length > 0 ? (
           posts.map((post) => (
             <View key={post.id} style={styles.postCard}>
-              <Text style={styles.postAuthor}>{userName} {user.surname || ''}</Text>
+              <Text style={styles.postAuthor}>{userName}</Text>
               <Text style={styles.postTimestamp}>{new Date(post.timestamp?.toDate()).toLocaleString()}</Text>
               <Text style={styles.postText}>{post.message}</Text>
 

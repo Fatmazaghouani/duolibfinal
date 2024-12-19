@@ -11,7 +11,7 @@ const UnderConstructionScreen = ({ navigation }) => {
       <Button
         title="Go Back"
         onPress={() => navigation.goBack()}
-        color="#FF6347"
+        color="#FF4081"
       />
     </View>
   );
@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FF6347',
+    color: '#FF4081',
     marginBottom: 20,
   },
   message: {
